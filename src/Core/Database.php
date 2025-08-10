@@ -96,6 +96,12 @@ class Database
         return $this->connection->lastInsertId();
     }
 
+    public function insertRaw($sql, $params = [])
+    {
+        $this->query($sql, $params);
+        return $this->connection->lastInsertId();
+    }
+
     public function update($table, $data, $where, $whereParams = [])
     {
         $setClause = [];
@@ -116,6 +122,12 @@ class Database
         $sql = "DELETE FROM {$table} WHERE {$where}";
         $this->query($sql, $params);
         return true;
+    }
+
+    public function execute($sql, $params = [])
+    {
+        $stmt = $this->query($sql, $params);
+        return $stmt->rowCount() > 0;
     }
 
     public function beginTransaction()

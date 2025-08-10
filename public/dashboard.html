@@ -79,6 +79,21 @@
                                 <i class="bi bi-boxes"></i> Inventory
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" onclick="showCategories()">
+                                <i class="bi bi-tags"></i> Categories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" onclick="showBranches()">
+                                <i class="bi bi-building"></i> Branches
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" onclick="showSuppliers()">
+                                <i class="bi bi-truck"></i> Suppliers
+                            </a>
+                        </li>
                     </ul>
                     <hr>
                     <div class="dropdown">
@@ -189,7 +204,663 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Categories Section -->
+                <div id="categories-section" style="display: none;">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Categories</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <button type="button" class="btn btn-primary" onclick="showAddCategoryModal()">
+                                <i class="bi bi-plus"></i> Add Category
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div id="categories-table">
+                            <!-- Categories will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branches Section -->
+                <div id="branches-section" style="display: none;">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Branches</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <button type="button" class="btn btn-primary" onclick="showAddBranchModal()">
+                                <i class="bi bi-plus"></i> Add Branch
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div id="branches-table">
+                            <!-- Branches will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suppliers Section -->
+                <div id="suppliers-section" style="display: none;">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <div>
+                            <h1 class="h2">Suppliers</h1>
+                        </div>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <button type="button" class="btn btn-primary" onclick="showAddSupplierModal()">
+                                <i class="bi bi-plus"></i> Add Supplier
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div id="suppliers-table">
+                            <!-- Suppliers will be loaded here -->
+                        </div>
+                    </div>
+                </div>
             </main>
+        </div>
+    </div>
+
+    <!-- Advanced Modals -->
+    <!-- Add/Edit Product Modal -->
+    <div class="modal fade" id="productModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productModalTitle">Add New Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm">
+                        <input type="hidden" id="productId" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Product Name *</label>
+                                    <input type="text" class="form-control" id="productName" name="name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Category *</label>
+                                    <select class="form-control" id="productCategory" name="category_id" required>
+                                        <option value="">Select Category</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Generic Name</label>
+                                    <input type="text" class="form-control" id="productGeneric" name="generic_name">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Manufacturer</label>
+                                    <input type="text" class="form-control" id="productManufacturer" name="manufacturer">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Selling Price *</label>
+                                    <input type="number" class="form-control" id="productPrice" name="selling_price" step="0.01" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Cost Price</label>
+                                    <input type="number" class="form-control" id="productCost" name="cost_price" step="0.01">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Stock Quantity *</label>
+                                    <input type="number" class="form-control" id="productStock" name="stock_quantity" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Reorder Level</label>
+                                    <input type="number" class="form-control" id="productReorder" name="reorder_level" value="10">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Prescription Required</label>
+                                    <select class="form-control" id="productPrescription" name="prescription_required">
+                                        <option value="0">No</option>
+                                        <option value="1">Yes</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-control" id="productStatus" name="status">
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="discontinued">Discontinued</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Expiry Date</label>
+                                    <input type="date" class="form-control" id="productExpiry" name="expiry_date">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Storage Location</label>
+                                    <input type="text" class="form-control" id="productLocation" name="storage_location">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="productDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProduct()">Save Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Sale Modal -->
+    <div class="modal fade" id="saleModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="saleModalTitle">New Sale</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="saleForm">
+                        <input type="hidden" id="saleId" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Customer *</label>
+                                    <select class="form-control" id="saleCustomer" name="customer_id" required>
+                                        <option value="">Select Customer</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Branch *</label>
+                                    <select class="form-control" id="saleBranch" name="branch_id" required>
+                                        <option value="">Select Branch</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Payment Method</label>
+                                    <select class="form-control" id="salePayment" name="payment_method">
+                                        <option value="cash">Cash</option>
+                                        <option value="card">Card</option>
+                                        <option value="insurance">Insurance</option>
+                                        <option value="credit">Credit</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Sale Date</label>
+                                    <input type="datetime-local" class="form-control" id="saleDate" name="sale_date" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0">Sale Items</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-2">
+                                    <div class="col-md-4">
+                                        <select class="form-control" id="saleProduct">
+                                            <option value="">Select Product</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" class="form-control" id="saleQuantity" placeholder="Qty" min="1">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" class="form-control" id="salePrice" placeholder="Price" step="0.01" readonly>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" class="form-control" id="saleTotal" placeholder="Total" readonly>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-success btn-sm" onclick="addSaleItem()">
+                                            <i class="bi bi-plus"></i> Add
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="saleItemsList">
+                                    <!-- Sale items will be added here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Subtotal</label>
+                                    <input type="number" class="form-control" id="saleSubtotal" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Tax Rate (%)</label>
+                                    <input type="number" class="form-control" id="saleTaxRate" value="0" step="0.01">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Tax Amount</label>
+                                    <input type="number" class="form-control" id="saleTaxAmount" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Discount (%)</label>
+                                    <input type="number" class="form-control" id="saleDiscount" value="0" step="0.01">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Discount Amount</label>
+                                    <input type="number" class="form-control" id="saleDiscountAmount" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Total Amount</label>
+                                    <input type="number" class="form-control" id="saleTotalAmount" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" id="saleNotes" name="notes" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSale()">Complete Sale</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Customer Modal -->
+    <div class="modal fade" id="customerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="customerModalTitle">Add New Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="customerForm">
+                        <input type="hidden" id="customerId" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="customerName" name="name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="customerEmail" name="email">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Phone *</label>
+                                    <input type="tel" class="form-control" id="customerPhone" name="phone" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="customerDob" name="date_of_birth">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Address</label>
+                                    <textarea class="form-control" id="customerAddress" name="address" rows="3"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">City</label>
+                                    <input type="text" class="form-control" id="customerCity" name="city">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">State</label>
+                                    <input type="text" class="form-control" id="customerState" name="state">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Postal Code</label>
+                                    <input type="text" class="form-control" id="customerPostal" name="postal_code">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Credit Limit</label>
+                                    <input type="number" class="form-control" id="customerCreditLimit" name="credit_limit" step="0.01" value="0">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Loyalty Points</label>
+                                    <input type="number" class="form-control" id="customerLoyalty" name="loyalty_points" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Allergies</label>
+                                    <textarea class="form-control" id="customerAllergies" name="allergies" rows="2"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Medical Conditions</label>
+                                    <textarea class="form-control" id="customerMedical" name="medical_conditions" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Inventory Modal -->
+    <div class="modal fade" id="inventoryModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="inventoryModalTitle">Add Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="inventoryForm">
+                        <input type="hidden" id="inventoryId" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Product *</label>
+                                    <select class="form-control" id="inventoryProduct" name="product_id" required>
+                                        <option value="">Select Product</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Branch *</label>
+                                    <select class="form-control" id="inventoryBranch" name="branch_id" required>
+                                        <option value="">Select Branch</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Supplier</label>
+                                    <select class="form-control" id="inventorySupplier" name="supplier_id">
+                                        <option value="">Select Supplier</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Quantity *</label>
+                                    <input type="number" class="form-control" id="inventoryQuantity" name="quantity" required min="1">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Unit Cost</label>
+                                    <input type="number" class="form-control" id="inventoryUnitCost" name="unit_cost" step="0.01">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Batch Number</label>
+                                    <input type="text" class="form-control" id="inventoryBatch" name="batch_number">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Purchase Date</label>
+                                    <input type="date" class="form-control" id="inventoryPurchaseDate" name="purchase_date">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Expiry Date</label>
+                                    <input type="date" class="form-control" id="inventoryExpiry" name="expiry_date">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Storage Location</label>
+                                    <input type="text" class="form-control" id="inventoryLocation" name="storage_location">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Notes</label>
+                                    <textarea class="form-control" id="inventoryNotes" name="notes" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveInventory()">Save Stock</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Sale Details Modal -->
+    <div class="modal fade" id="viewSaleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Sale Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="viewSaleContent">
+                    <!-- Sale details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="printSale()">Print Receipt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer History Modal -->
+    <div class="modal fade" id="customerHistoryModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Customer History</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="customerHistoryContent">
+                    <!-- Customer history will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Item Details Modal -->
+    <div class="modal fade" id="inventoryItemModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Inventory Item Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="inventoryItemContent">
+                    <!-- Inventory item details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="editInventoryItem()">Edit Item</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div class="modal fade" id="categoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categoryModalTitle">Add New Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="categoryForm">
+                        <input type="hidden" id="categoryId" name="id">
+                        <div class="mb-3">
+                            <label class="form-label">Category Name *</label>
+                            <input type="text" class="form-control" id="categoryName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="categoryDescription" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-control" id="categoryStatus" name="status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveCategory()">Save Category</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Branch Modal -->
+    <div class="modal fade" id="branchModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="branchModalTitle">Add New Branch</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="branchForm">
+                        <input type="hidden" id="branchId" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Branch Name *</label>
+                                    <input type="text" class="form-control" id="branchName" name="name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Address *</label>
+                                    <textarea class="form-control" id="branchAddress" name="address" rows="3" required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">City *</label>
+                                    <input type="text" class="form-control" id="branchCity" name="city" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">State/Province</label>
+                                    <input type="text" class="form-control" id="branchState" name="state">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Postal Code</label>
+                                    <input type="text" class="form-control" id="branchPostalCode" name="postal_code">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Country</label>
+                                    <input type="text" class="form-control" id="branchCountry" name="country" value="USA">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="branchPhone" name="phone">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="branchEmail" name="email">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-control" id="branchStatus" name="status">
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveBranch()">Save Branch</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supplier Modal -->
+    <div class="modal fade" id="supplierModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="supplierModalTitle">Add New Supplier</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="supplierForm">
+                        <input type="hidden" id="supplierId" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Supplier Name *</label>
+                                    <input type="text" class="form-control" id="supplierName" name="name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Contact Person *</label>
+                                    <input type="text" class="form-control" id="supplierContactPerson" name="contact_person" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="supplierPhone" name="phone">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="supplierEmail" name="email">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Address</label>
+                                    <textarea class="form-control" id="supplierAddress" name="address" rows="3"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">City</label>
+                                    <input type="text" class="form-control" id="supplierCity" name="city">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">State/Province</label>
+                                    <input type="text" class="form-control" id="supplierState" name="state">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Postal Code</label>
+                                    <input type="text" class="form-control" id="supplierPostalCode" name="postal_code">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Country</label>
+                                    <input type="text" class="form-control" id="supplierCountry" name="country" value="USA">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-control" id="supplierStatus" name="status">
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSupplier()">Save Supplier</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -251,12 +922,39 @@
             loadInventory();
         }
 
+        function showCategories() {
+            hideAllSections();
+            document.getElementById('categories-section').style.display = 'block';
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+            loadCategories();
+        }
+
+        function showBranches() {
+            hideAllSections();
+            document.getElementById('branches-section').style.display = 'block';
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+            loadBranches();
+        }
+
+        function showSuppliers() {
+            hideAllSections();
+            document.getElementById('suppliers-section').style.display = 'block';
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+            loadSuppliers();
+        }
+
         function hideAllSections() {
             document.getElementById('dashboard-section').style.display = 'none';
             document.getElementById('products-section').style.display = 'none';
             document.getElementById('sales-section').style.display = 'none';
             document.getElementById('customers-section').style.display = 'none';
             document.getElementById('inventory-section').style.display = 'none';
+            document.getElementById('categories-section').style.display = 'none';
+            document.getElementById('branches-section').style.display = 'none';
+            document.getElementById('suppliers-section').style.display = 'none';
         }
 
         // API functions
@@ -381,6 +1079,161 @@
             if (products && products.data) {
                 displayProducts(products.data);
             }
+        }
+
+        async function loadCategories() {
+            const categories = await apiCall('api/categories');
+            if (categories && categories.data) {
+                displayCategories(categories.data);
+            }
+        }
+
+        function displayCategories(categories) {
+            const container = document.getElementById('categories-table');
+            if (categories.length === 0) {
+                container.innerHTML = '<p class="text-muted">No categories found</p>';
+                return;
+            }
+
+            let html = `
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            categories.forEach(category => {
+                html += `
+                    <tr>
+                        <td>${category.name}</td>
+                        <td>${category.description || 'N/A'}</td>
+                        <td><span class="badge bg-${category.status === 'active' ? 'success' : 'secondary'}">${category.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary btn-action" onclick="editCategory(${category.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteCategory(${category.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        async function loadBranches() {
+            const branches = await apiCall('api/branches');
+            if (branches && branches.data) {
+                displayBranches(branches.data);
+            }
+        }
+
+        function displayBranches(branches) {
+            const container = document.getElementById('branches-table');
+            if (branches.length === 0) {
+                container.innerHTML = '<p class="text-muted">No branches found</p>';
+                return;
+            }
+
+            let html = `
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Address</th>
+                            <th>City</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            branches.forEach(branch => {
+                html += `
+                    <tr>
+                        <td>${branch.name}</td>
+                        <td>${branch.address || 'N/A'}</td>
+                        <td>${branch.city || 'N/A'}</td>
+                        <td>${branch.phone || 'N/A'}</td>
+                        <td><span class="badge bg-${branch.status === 'active' ? 'success' : 'secondary'}">${branch.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary btn-action" onclick="editBranch(${branch.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteBranch(${branch.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        async function loadSuppliers() {
+            const suppliers = await apiCall('api/suppliers');
+            if (suppliers && suppliers.data) {
+                displaySuppliers(suppliers.data);
+            }
+        }
+
+        function displaySuppliers(suppliers) {
+            const container = document.getElementById('suppliers-table');
+            if (suppliers.length === 0) {
+                container.innerHTML = '<p class="text-muted">No suppliers found</p>';
+                return;
+            }
+
+            let html = `
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Contact Person</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            suppliers.forEach(supplier => {
+                html += `
+                    <tr>
+                        <td>${supplier.name}</td>
+                        <td>${supplier.contact_person || 'N/A'}</td>
+                        <td>${supplier.phone || 'N/A'}</td>
+                        <td>${supplier.email || 'N/A'}</td>
+                        <td><span class="badge bg-${supplier.status === 'active' ? 'success' : 'secondary'}">${supplier.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary btn-action" onclick="editSupplier(${supplier.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteSupplier(${supplier.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
         }
 
         function displayProducts(products) {
@@ -588,57 +1441,805 @@
             container.innerHTML = html;
         }
 
-        // Placeholder functions for CRUD operations
+        // Advanced CRUD functions
         function refreshDashboard() {
             loadDashboard();
+            loadRecentSales();
         }
 
         function showAddProductModal() {
-            alert('Add Product modal - To be implemented');
+            // Reset form
+            document.getElementById('productForm').reset();
+            document.getElementById('productModalTitle').textContent = 'Add New Product';
+            document.getElementById('productModal').classList.remove('edit-mode');
+            document.getElementById('productForm').removeAttribute('data-edit-id');
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('productModal'));
+            modal.show();
         }
 
         function showAddSaleModal() {
-            alert('Add Sale modal - To be implemented');
+            // Reset form
+            document.getElementById('saleForm').reset();
+            document.getElementById('saleModalTitle').textContent = 'Add New Sale';
+            document.getElementById('saleModal').classList.remove('edit-mode');
+            document.getElementById('saleForm').removeAttribute('data-edit-id');
+            
+            // Reset sale items
+            document.getElementById('saleItemsContainer').innerHTML = '';
+            addSaleItem(); // Add first item
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('saleModal'));
+            modal.show();
         }
 
         function showAddCustomerModal() {
-            alert('Add Customer modal - To be implemented');
+            // Reset form
+            document.getElementById('customerForm').reset();
+            document.getElementById('customerModalTitle').textContent = 'Add New Customer';
+            document.getElementById('customerModal').classList.remove('edit-mode');
+            document.getElementById('customerForm').removeAttribute('data-edit-id');
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('customerModal'));
+            modal.show();
         }
 
         function showAddInventoryModal() {
-            alert('Add Inventory modal - To be implemented');
+            // Reset form
+            document.getElementById('inventoryForm').reset();
+            document.getElementById('inventoryModalTitle').textContent = 'Add New Inventory Item';
+            document.getElementById('inventoryModal').classList.remove('edit-mode');
+            document.getElementById('inventoryForm').removeAttribute('data-edit-id');
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('inventoryModal'));
+            modal.show();
+        }
+
+        function showAddCategoryModal() {
+            // Reset form
+            document.getElementById('categoryForm').reset();
+            document.getElementById('categoryModalTitle').textContent = 'Add New Category';
+            document.getElementById('categoryModal').classList.remove('edit-mode');
+            document.getElementById('categoryForm').removeAttribute('data-edit-id');
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('categoryModal'));
+            modal.show();
+        }
+
+        function showAddBranchModal() {
+            // Reset form
+            document.getElementById('branchForm').reset();
+            document.getElementById('branchModalTitle').textContent = 'Add New Branch';
+            document.getElementById('branchModal').classList.remove('edit-mode');
+            document.getElementById('branchForm').removeAttribute('data-edit-id');
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('branchModal'));
+            modal.show();
+        }
+
+        function showAddSupplierModal() {
+            // Reset form
+            document.getElementById('supplierForm').reset();
+            document.getElementById('supplierModalTitle').textContent = 'Add New Supplier';
+            document.getElementById('supplierModal').classList.remove('edit-mode');
+            document.getElementById('supplierForm').removeAttribute('data-edit-id');
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('supplierModal'));
+            modal.show();
         }
 
         function editProduct(id) {
-            alert(`Edit Product ${id} - To be implemented`);
+            // Fetch product data and populate form
+            apiCall(`api/products/${id}`).then(product => {
+                if (product) {
+                    document.getElementById('productModalTitle').textContent = 'Edit Product';
+                    document.getElementById('productModal').classList.add('edit-mode');
+                    document.getElementById('productForm').dataset.editId = id;
+                    
+                    // Populate form fields
+                    document.getElementById('productName').value = product.name || '';
+                    document.getElementById('productCategory').value = product.category_id || '';
+                    document.getElementById('productGenericName').value = product.generic_name || '';
+                    document.getElementById('productManufacturer').value = product.manufacturer || '';
+                    document.getElementById('productSellingPrice').value = product.selling_price || '';
+                    document.getElementById('productCostPrice').value = product.unit_cost || '';
+                    document.getElementById('productStock').value = product.stock || '';
+                    document.getElementById('productReorderLevel').value = product.reorder_level || '';
+                    document.getElementById('productPrescriptionRequired').checked = product.prescription_required == 1;
+                    document.getElementById('productStatus').value = product.status || 'active';
+                    document.getElementById('productExpiryDate').value = product.expiry_date || '';
+                    document.getElementById('productStorageLocation').value = product.storage_location || '';
+                    document.getElementById('productDescription').value = product.description || '';
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('productModal'));
+                    modal.show();
+                }
+            });
+        }
+
+        function editCategory(id) {
+            // Fetch category data and populate form
+            apiCall(`api/categories/${id}`).then(category => {
+                if (category) {
+                    document.getElementById('categoryModalTitle').textContent = 'Edit Category';
+                    document.getElementById('categoryModal').classList.add('edit-mode');
+                    document.getElementById('categoryForm').dataset.editId = id;
+                    
+                    // Populate form fields
+                    document.getElementById('categoryName').value = category.name || '';
+                    document.getElementById('categoryDescription').value = category.description || '';
+                    document.getElementById('categoryStatus').value = category.status || 'active';
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('categoryModal'));
+                    modal.show();
+                }
+            });
+        }
+
+        function editBranch(id) {
+            // Fetch branch data and populate form
+            apiCall(`api/branches/${id}`).then(branch => {
+                if (branch) {
+                    document.getElementById('branchModalTitle').textContent = 'Edit Branch';
+                    document.getElementById('branchModal').classList.add('edit-mode');
+                    document.getElementById('branchForm').dataset.editId = id;
+                    
+                    // Populate form fields
+                    document.getElementById('branchName').value = branch.name || '';
+                    document.getElementById('branchAddress').value = branch.address || '';
+                    document.getElementById('branchCity').value = branch.city || '';
+                    document.getElementById('branchState').value = branch.state || '';
+                    document.getElementById('branchPostalCode').value = branch.postal_code || '';
+                    document.getElementById('branchCountry').value = branch.country || 'USA';
+                    document.getElementById('branchPhone').value = branch.phone || '';
+                    document.getElementById('branchEmail').value = branch.email || '';
+                    document.getElementById('branchStatus').value = branch.status || 'active';
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('branchModal'));
+                    modal.show();
+                }
+            });
+        }
+
+        function editSupplier(id) {
+            // Fetch supplier data and populate form
+            apiCall(`api/suppliers/${id}`).then(supplier => {
+                if (supplier) {
+                    document.getElementById('supplierModalTitle').textContent = 'Edit Supplier';
+                    document.getElementById('supplierModal').classList.add('edit-mode');
+                    document.getElementById('supplierForm').dataset.editId = id;
+                    
+                    // Populate form fields
+                    document.getElementById('supplierName').value = supplier.name || '';
+                    document.getElementById('supplierContactPerson').value = supplier.contact_person || '';
+                    document.getElementById('supplierPhone').value = supplier.phone || '';
+                    document.getElementById('supplierEmail').value = supplier.email || '';
+                    document.getElementById('supplierAddress').value = supplier.address || '';
+                    document.getElementById('supplierCity').value = supplier.city || '';
+                    document.getElementById('supplierState').value = supplier.state || '';
+                    document.getElementById('supplierPostalCode').value = supplier.postal_code || '';
+                    document.getElementById('supplierCountry').value = supplier.country || 'USA';
+                    document.getElementById('supplierStatus').value = supplier.status || 'active';
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('supplierModal'));
+                    modal.show();
+                }
+            });
         }
 
         function deleteProduct(id) {
             if (confirm('Are you sure you want to delete this product?')) {
-                alert(`Delete Product ${id} - To be implemented`);
+                apiCall(`api/products/${id}`, { method: 'DELETE' }).then(result => {
+                    if (result) {
+                        showAlert('Product deleted successfully', 'success');
+                        loadProducts();
+                    }
+                });
+            }
+        }
+
+        function deleteCategory(id) {
+            if (confirm('Are you sure you want to delete this category?')) {
+                apiCall(`api/categories/${id}`, { method: 'DELETE' }).then(result => {
+                    if (result) {
+                        showAlert('Category deleted successfully', 'success');
+                        loadCategories();
+                    }
+                });
+            }
+        }
+
+        function deleteBranch(id) {
+            if (confirm('Are you sure you want to delete this branch?')) {
+                apiCall(`api/branches/${id}`, { method: 'DELETE' }).then(result => {
+                    if (result) {
+                        showAlert('Branch deleted successfully', 'success');
+                        loadBranches();
+                    }
+                });
+            }
+        }
+
+        function deleteSupplier(id) {
+            if (confirm('Are you sure you want to delete this supplier?')) {
+                apiCall(`api/suppliers/${id}`, { method: 'DELETE' }).then(result => {
+                    if (result) {
+                        showAlert('Supplier deleted successfully', 'success');
+                        loadSuppliers();
+                    }
+                });
             }
         }
 
         function viewSale(id) {
-            alert(`View Sale ${id} - To be implemented`);
+            // Fetch sale data and populate view modal
+            apiCall(`api/sales/${id}`).then(sale => {
+                if (sale) {
+                    // Populate sale details in view modal
+                    document.getElementById('viewSaleDetails').innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Sale ID:</strong> ${sale.id}</p>
+                                <p><strong>Customer:</strong> ${sale.customer_name || 'N/A'}</p>
+                                <p><strong>Branch:</strong> ${sale.branch_name || 'N/A'}</p>
+                                <p><strong>Payment Method:</strong> ${sale.payment_method || 'N/A'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Sale Date:</strong> ${sale.sale_date || 'N/A'}</p>
+                                <p><strong>Subtotal:</strong> $${sale.subtotal || '0.00'}</p>
+                                <p><strong>Tax:</strong> $${sale.tax || '0.00'}</p>
+                                <p><strong>Total:</strong> $${sale.total || '0.00'}</p>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <h6>Sale Items:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Quantity</th>
+                                            <th>Price</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${sale.items ? sale.items.map(item => `
+                                            <tr>
+                                                <td>${item.product_name || 'N/A'}</td>
+                                                <td>${item.quantity || '0'}</td>
+                                                <td>$${item.price || '0.00'}</td>
+                                                <td>$${item.total || '0.00'}</td>
+                                            </tr>
+                                        `).join('') : '<tr><td colspan="4">No items found</td></tr>'}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('viewSaleModal'));
+                    modal.show();
+                }
+            });
         }
 
         function deleteSale(id) {
             if (confirm('Are you sure you want to delete this sale?')) {
-                alert(`Delete Sale ${id} - To be implemented`);
+                apiCall(`api/sales/${id}`, { method: 'DELETE' }).then(result => {
+                    if (result) {
+                        showAlert('Sale deleted successfully', 'success');
+                        loadSales();
+                    }
+                });
             }
         }
 
         function editCustomer(id) {
-            alert(`Edit Customer ${id} - To be implemented`);
+            // Fetch customer data and populate form
+            apiCall(`api/customers/${id}`).then(customer => {
+                if (customer) {
+                    document.getElementById('customerModalTitle').textContent = 'Edit Customer';
+                    document.getElementById('customerModal').classList.add('edit-mode');
+                    document.getElementById('customerForm').dataset.editId = id;
+                    
+                    // Populate form fields
+                    document.getElementById('customerName').value = customer.name || '';
+                    document.getElementById('customerEmail').value = customer.email || '';
+                    document.getElementById('customerPhone').value = customer.phone || '';
+                    document.getElementById('customerDOB').value = customer.date_of_birth || '';
+                    document.getElementById('customerAddress').value = customer.address || '';
+                    document.getElementById('customerCity').value = customer.city || '';
+                    document.getElementById('customerState').value = customer.state || '';
+                    document.getElementById('customerPostalCode').value = customer.postal_code || '';
+                    document.getElementById('customerCreditLimit').value = customer.credit_limit || '';
+                    document.getElementById('customerLoyaltyPoints').value = customer.loyalty_points || '';
+                    document.getElementById('customerAllergies').value = customer.allergies || '';
+                    document.getElementById('customerMedicalConditions').value = customer.medical_conditions || '';
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('customerModal'));
+                    modal.show();
+                }
+            });
         }
 
         function viewCustomerHistory(id) {
-            alert(`View Customer History ${id} - To be implemented`);
+            // Fetch customer history and populate view modal
+            apiCall(`api/customers/${id}/history`).then(history => {
+                if (history) {
+                    // Populate customer history in view modal
+                    document.getElementById('customerHistoryDetails').innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Purchase History</h6>
+                                <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Amount</th>
+                                            <th>Items</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${history.purchases ? history.purchases.map(purchase => `
+                                            <tr>
+                                                <td>${purchase.date || 'N/A'}</td>
+                                                <td>$${purchase.amount || '0.00'}</td>
+                                                <td>${purchase.items || '0'}</td>
+                                            </tr>
+                                        `).join('') : '<tr><td colspan="3">No purchases found</td></tr>'}
+                                    </tbody>
+                                </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Prescriptions</h6>
+                                <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Doctor</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${history.prescriptions ? history.prescriptions.map(prescription => `
+                                            <tr>
+                                                <td>${prescription.date || 'N/A'}</td>
+                                                <td>${prescription.doctor || 'N/A'}</td>
+                                                <td><span class="badge bg-${prescription.status === 'active' ? 'success' : 'secondary'}">${prescription.status || 'N/A'}</span></td>
+                                            </tr>
+                                        `).join('') : '<tr><td colspan="3">No prescriptions found</td></tr>'}
+                                    </tbody>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('customerHistoryModal'));
+                    modal.show();
+                }
+            });
         }
 
         function viewInventoryItem(id) {
-            alert(`View Inventory Item ${id} - To be implemented`);
+            // Fetch inventory item data and populate view modal
+            apiCall(`api/inventory/${id}`).then(item => {
+                if (item) {
+                    // Populate inventory item details in view modal
+                    document.getElementById('inventoryItemDetails').innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Product:</strong> ${item.product_name || 'N/A'}</p>
+                                <p><strong>Branch:</strong> ${item.branch_name || 'N/A'}</p>
+                                <p><strong>Supplier:</strong> ${item.supplier_name || 'N/A'}</p>
+                                <p><strong>Batch Number:</strong> ${item.batch_number || 'N/A'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Quantity:</strong> ${item.quantity || '0'}</p>
+                                <p><strong>Unit Cost:</strong> $${item.unit_cost || '0.00'}</p>
+                                <p><strong>Purchase Date:</strong> ${item.purchase_date || 'N/A'}</p>
+                                <p><strong>Expiry Date:</strong> ${item.expiry_date || 'N/A'}</p>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <p><strong>Notes:</strong> ${item.notes || 'No notes available'}</p>
+                        </div>
+                    `;
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('inventoryItemModal'));
+                    modal.show();
+                }
+            });
+        }
+
+        // Save functions for CRUD operations
+        async function saveProduct() {
+            const form = document.getElementById('productForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Convert numeric fields
+            data.selling_price = parseFloat(data.selling_price);
+            data.cost_price = parseFloat(data.cost_price);
+            data.stock_quantity = parseInt(data.stock_quantity);
+            data.reorder_level = parseInt(data.reorder_level);
+            
+            try {
+                let response;
+                if (form.classList.contains('edit-mode')) {
+                    // Update existing product
+                    const productId = form.dataset.editId;
+                    response = await apiCall(`api/products/${productId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Product updated successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+                        loadProducts();
+                    }
+                } else {
+                    // Create new product
+                    response = await apiCall('api/products', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Product created successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+                        loadProducts();
+                    }
+                }
+            } catch (error) {
+                showAlert('Error saving product: ' + error.message, 'danger');
+            }
+        }
+
+        async function saveCategory() {
+            const form = document.getElementById('categoryForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                let response;
+                if (form.classList.contains('edit-mode')) {
+                    // Update existing category
+                    const categoryId = form.dataset.editId;
+                    response = await apiCall(`api/categories/${categoryId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Category updated successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('categoryModal')).hide();
+                        loadCategories();
+                    }
+                } else {
+                    // Create new category
+                    response = await apiCall('api/categories', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Category created successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('categoryModal')).hide();
+                        loadCategories();
+                    }
+                }
+            } catch (error) {
+                showAlert('Error saving category: ' + error.message, 'danger');
+            }
+        }
+
+        async function saveBranch() {
+            const form = document.getElementById('branchForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                let response;
+                if (form.classList.contains('edit-mode')) {
+                    // Update existing branch
+                    const branchId = form.dataset.editId;
+                    response = await apiCall(`api/branches/${branchId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Branch updated successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('branchModal')).hide();
+                        loadBranches();
+                    }
+                } else {
+                    // Create new branch
+                    response = await apiCall('api/branches', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Branch created successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('branchModal')).hide();
+                        loadBranches();
+                    }
+                }
+            } catch (error) {
+                showAlert('Error saving branch: ' + error.message, 'danger');
+            }
+        }
+
+        async function saveSupplier() {
+            const form = document.getElementById('supplierForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                let response;
+                if (form.classList.contains('edit-mode')) {
+                    // Update existing supplier
+                    const supplierId = form.dataset.editId;
+                    response = await apiCall(`api/suppliers/${supplierId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Supplier updated successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('supplierModal')).hide();
+                        loadSuppliers();
+                    }
+                } else {
+                    // Create new supplier
+                    response = await apiCall('api/suppliers', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Supplier created successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('supplierModal')).hide();
+                        loadSuppliers();
+                    }
+                }
+            } catch (error) {
+                showAlert('Error saving supplier: ' + error.message, 'danger');
+            }
+        }
+
+        async function saveSale() {
+            const form = document.getElementById('saleForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Collect sale items
+            const items = [];
+            document.querySelectorAll('.sale-item').forEach(item => {
+                const productId = item.querySelector('[name="product_id[]"]').value;
+                const quantity = parseInt(item.querySelector('[name="quantity[]"]').value);
+                const price = parseFloat(item.querySelector('[name="price[]"]').value);
+                
+                if (productId && quantity && price) {
+                    items.push({
+                        product_id: productId,
+                        quantity: quantity,
+                        price: price
+                    });
+                }
+            });
+            
+            data.items = items;
+            data.subtotal = parseFloat(document.getElementById('saleSubtotal').value);
+            data.tax = parseFloat(document.getElementById('saleTax').value);
+            data.total = parseFloat(document.getElementById('saleTotal').value);
+            
+            try {
+                let response;
+                if (form.classList.contains('edit-mode')) {
+                    // Update existing sale
+                    const saleId = form.dataset.editId;
+                    response = await apiCall(`api/sales/${saleId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Sale updated successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('saleModal')).hide();
+                        loadSales();
+                        refreshDashboard();
+                    }
+                } else {
+                    // Create new sale
+                    response = await apiCall('api/sales', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Sale created successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('saleModal')).hide();
+                        loadSales();
+                        refreshDashboard();
+                    }
+                }
+            } catch (error) {
+                showAlert('Error saving sale: ' + error.message, 'danger');
+            }
+        }
+
+        async function saveCustomer() {
+            const form = document.getElementById('customerForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                let response;
+                if (form.classList.contains('edit-mode')) {
+                    // Update existing customer
+                    const customerId = form.dataset.editId;
+                    response = await apiCall(`api/customers/${customerId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Customer updated successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('customerModal')).hide();
+                        loadCustomers();
+                    }
+                } else {
+                    // Create new customer
+                    response = await apiCall('api/customers', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Customer created successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('customerModal')).hide();
+                        loadCustomers();
+                    }
+                }
+            } catch (error) {
+                showAlert('Error saving customer: ' + error.message, 'danger');
+            }
+        }
+
+        async function saveInventory() {
+            const form = document.getElementById('inventoryForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Convert numeric fields
+            data.quantity = parseInt(data.quantity);
+            data.unit_cost = parseFloat(data.unit_cost);
+            
+            try {
+                let response;
+                if (form.classList.contains('edit-mode')) {
+                    // Update existing inventory item
+                    const inventoryId = form.dataset.editId;
+                    response = await apiCall(`api/inventory/${inventoryId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Inventory item updated successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('inventoryModal')).hide();
+                        loadInventory();
+                    }
+                } else {
+                    // Create new inventory item
+                    response = await apiCall('api/inventory', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                    if (response) {
+                        showAlert('Inventory item created successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('inventoryModal')).hide();
+                        loadInventory();
+                    }
+                }
+            } catch (error) {
+                showAlert('Error saving inventory item: ' + error.message, 'danger');
+            }
+        }
+
+        // Helper functions for advanced features
+        function addSaleItem() {
+            const container = document.getElementById('saleItemsContainer');
+            const itemId = Date.now();
+            
+            const itemHtml = `
+                <div class="sale-item" data-item-id="${itemId}">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <select class="form-select" name="product_id[]" required>
+                                <option value="">Select Product</option>
+                                <!-- Products will be loaded dynamically -->
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" class="form-control" name="quantity[]" placeholder="Qty" min="1" required>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" class="form-control" name="price[]" placeholder="Price" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" class="form-control" name="total[]" placeholder="Total" step="0.01" min="0" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeSaleItem(${itemId})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', itemHtml);
+            updateSaleTotals();
+        }
+
+        function removeSaleItem(itemId) {
+            const item = document.querySelector(`[data-item-id="${itemId}"]`);
+            if (item) {
+                item.remove();
+                updateSaleTotals();
+            }
+        }
+
+        function updateSaleTotals() {
+            const items = document.querySelectorAll('.sale-item');
+            let subtotal = 0;
+            
+            items.forEach(item => {
+                const quantity = parseFloat(item.querySelector('[name="quantity[]"]').value) || 0;
+                const price = parseFloat(item.querySelector('[name="price[]"]').value) || 0;
+                const total = quantity * price;
+                
+                item.querySelector('[name="total[]"]').value = total.toFixed(2);
+                subtotal += total;
+            });
+            
+            const tax = subtotal * 0.1; // 10% tax
+            const total = subtotal + tax;
+            
+            document.getElementById('saleSubtotal').value = subtotal.toFixed(2);
+            document.getElementById('saleTax').value = tax.toFixed(2);
+            document.getElementById('saleTotal').value = total.toFixed(2);
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alert-container');
+            if (alertContainer) {
+                alertContainer.innerHTML = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    const alert = alertContainer.querySelector('.alert');
+                    if (alert) {
+                        alert.remove();
+                    }
+                }, 5000);
+            }
         }
 
         function logout() {

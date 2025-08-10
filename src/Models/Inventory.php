@@ -542,4 +542,98 @@ class Inventory
         $result = $this->db->fetch($sql, $params);
         return $result['total'] ?? 0;
     }
+
+    /**
+     * Get inventory item by ID
+     */
+    public function getById($id)
+    {
+        $sql = "SELECT 
+                    i.id,
+                    i.product_id,
+                    p.name as product_name,
+                    i.branch_id,
+                    b.name as branch_name,
+                    i.batch_number,
+                    i.expiry_date,
+                    i.quantity,
+                    i.unit_cost,
+                    i.supplier_id,
+                    s.name as supplier_name,
+                    i.purchase_date,
+                    i.notes,
+                    i.created_at
+                FROM inventory i
+                LEFT JOIN products p ON i.product_id = p.id
+                LEFT JOIN branches b ON i.branch_id = b.id
+                LEFT JOIN suppliers s ON i.supplier_id = s.id
+                WHERE i.id = ? AND i.tenant_id = ?";
+        
+        return $this->db->fetch($sql, [$id, $this->tenantId]);
+    }
+
+    /**
+     * Create new inventory item
+     */
+    public function create($data)
+    {
+        $sql = "INSERT INTO inventory (
+                    tenant_id, product_id, branch_id, supplier_id, 
+                    batch_number, expiry_date, quantity, unit_cost, 
+                    purchase_date, notes, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        
+        $params = [
+            $this->tenantId,
+            $data['product_id'],
+            $data['branch_id'],
+            $data['supplier_id'] ?? null,
+            $data['batch_number'] ?? null,
+            $data['expiry_date'] ?? null,
+            $data['quantity'],
+            $data['unit_cost'] ?? null,
+            $data['purchase_date'] ?? null,
+            $data['notes'] ?? null
+        ];
+        
+        return $this->db->insertRaw($sql, $params);
+    }
+
+    /**
+     * Update inventory item
+     */
+    public function update($id, $data)
+    {
+        $sql = "UPDATE inventory SET 
+                    product_id = ?, branch_id = ?, supplier_id = ?, 
+                    batch_number = ?, expiry_date = ?, quantity = ?, 
+                    unit_cost = ?, purchase_date = ?, notes = ?, 
+                    updated_at = NOW()
+                WHERE id = ? AND tenant_id = ?";
+        
+        $params = [
+            $data['product_id'],
+            $data['branch_id'],
+            $data['supplier_id'] ?? null,
+            $data['batch_number'] ?? null,
+            $data['expiry_date'] ?? null,
+            $data['quantity'],
+            $data['unit_cost'] ?? null,
+            $data['purchase_date'] ?? null,
+            $data['notes'] ?? null,
+            $id,
+            $this->tenantId
+        ];
+        
+        return $this->db->execute($sql, $params);
+    }
+
+    /**
+     * Delete inventory item
+     */
+    public function delete($id)
+    {
+        $sql = "DELETE FROM inventory WHERE id = ? AND tenant_id = ?";
+        return $this->db->execute($sql, [$id, $this->tenantId]);
+    }
 }

@@ -9,6 +9,9 @@ use PharmacySaaS\Models\Sale;
 use PharmacySaaS\Models\Customer;
 use PharmacySaaS\Models\Inventory;
 use PharmacySaaS\Models\DashboardStats;
+use PharmacySaaS\Models\Category;
+use PharmacySaaS\Models\Branch;
+use PharmacySaaS\Models\Supplier;
 
 // Load environment variables
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
@@ -68,6 +71,10 @@ $routes = [
         'api/products' => 'handleCreateProduct',
         'api/sales' => 'handleCreateSale',
         'api/customers' => 'handleCreateCustomer',
+        'api/inventory' => 'handleCreateInventory',
+        'api/categories' => 'handleCreateCategory',
+        'api/branches' => 'handleCreateBranch',
+        'api/suppliers' => 'handleCreateSupplier',
         'api/tenants' => 'handleCreateTenant'
     ],
     'GET' => [
@@ -77,19 +84,38 @@ $routes = [
         'api/sales/{id}' => 'handleGetSale',
         'api/customers' => 'handleGetCustomers',
         'api/customers/{id}' => 'handleGetCustomer',
+        'api/customers/{id}/history' => 'handleGetCustomerHistory',
         'api/inventory' => 'handleGetInventory',
+        'api/inventory/{id}' => 'handleGetInventoryItem',
+        'api/categories' => 'handleGetCategories',
+        'api/categories/{id}' => 'handleGetCategory',
+        'api/categories/active' => 'handleGetActiveCategories',
+        'api/branches' => 'handleGetBranches',
+        'api/branches/{id}' => 'handleGetBranch',
+        'api/branches/active' => 'handleGetActiveBranches',
+        'api/suppliers' => 'handleGetSuppliers',
+        'api/suppliers/{id}' => 'handleGetSupplier',
+        'api/suppliers/active' => 'handleGetActiveSuppliers',
         'api/dashboard/stats' => 'handleGetDashboardStats',
         'api/tenants/{id}' => 'handleGetTenant'
     ],
     'PUT' => [
         'api/products/{id}' => 'handleUpdateProduct',
         'api/sales/{id}' => 'handleUpdateSale',
-        'api/customers/{id}' => 'handleUpdateCustomer'
+        'api/customers/{id}' => 'handleUpdateCustomer',
+        'api/inventory/{id}' => 'handleUpdateInventory',
+        'api/categories/{id}' => 'handleUpdateCategory',
+        'api/branches/{id}' => 'handleUpdateBranch',
+        'api/suppliers/{id}' => 'handleUpdateSupplier'
     ],
     'DELETE' => [
         'api/products/{id}' => 'handleDeleteProduct',
         'api/sales/{id}' => 'handleDeleteSale',
-        'api/customers/{id}' => 'handleDeleteCustomer'
+        'api/customers/{id}' => 'handleDeleteCustomer',
+        'api/inventory/{id}' => 'handleDeleteInventory',
+        'api/categories/{id}' => 'handleDeleteCategory',
+        'api/branches/{id}' => 'handleDeleteBranch',
+        'api/suppliers/{id}' => 'handleDeleteSupplier'
     ]
 ];
 
@@ -714,6 +740,61 @@ function handleDeleteCustomer($params) {
             http_response_code(404);
             echo json_encode(['error' => 'Customer not found']);
         }
+            } catch (\Exception $e) {
+            http_response_code(400);
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+    }
+}
+
+function handleGetCustomerHistory($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        // For now, return mock data - this would be enhanced with real database queries
+        $history = [
+            'purchases' => [
+                [
+                    'date' => '2024-01-15',
+                    'amount' => '125.50',
+                    'items' => '3'
+                ],
+                [
+                    'date' => '2024-01-10',
+                    'amount' => '89.99',
+                    'items' => '2'
+                ],
+                [
+                    'date' => '2024-01-05',
+                    'amount' => '45.75',
+                    'items' => '1'
+                ]
+            ],
+            'prescriptions' => [
+                [
+                    'date' => '2024-01-12',
+                    'doctor' => 'Dr. Smith',
+                    'status' => 'active'
+                ],
+                [
+                    'date' => '2024-01-08',
+                    'doctor' => 'Dr. Johnson',
+                    'status' => 'completed'
+                ]
+            ]
+        ];
+        
+        echo json_encode($history);
     } catch (\Exception $e) {
         http_response_code(400);
         echo json_encode(['error' => $e->getMessage()]);
@@ -766,4 +847,717 @@ function getAuthToken() {
     }
     
     return null;
+}
+
+// Additional API handlers for advanced features
+function handleGetInventoryItem($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        $inventory = new Inventory();
+        $item = $inventory->getById($params['id']);
+        
+        if ($item) {
+            echo json_encode($item);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Inventory item not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleCreateInventory($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $authManager->requirePermission('inventory_manage');
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        $inventory = new Inventory();
+        $inventoryId = $inventory->create($input);
+        
+        if ($inventoryId) {
+            echo json_encode([
+                'message' => 'Inventory item created successfully',
+                'id' => $inventoryId
+            ]);
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'Failed to create inventory item']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleUpdateInventory($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $authManager->requirePermission('inventory_manage');
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        $inventory = new Inventory();
+        $success = $inventory->update($params['id'], $input);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Inventory item updated successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Inventory item not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleDeleteInventory($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $authManager->requirePermission('inventory_manage');
+        
+        $inventory = new Inventory();
+        $success = $inventory->delete($params['id']);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Inventory item deleted successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Inventory item not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetCategories($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        // Initialize Category model
+        $categoryModel = new Category();
+        
+        // Get query parameters for pagination and filtering
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+        $search = isset($_GET['search']) ? $_GET['search'] : '';
+        $status = isset($_GET['status']) ? $_GET['status'] : '';
+        
+        // Get categories with pagination and filtering
+        $categories = $categoryModel->getAll($page, $limit, $search, $status);
+        $total = $categoryModel->getCount($search, $status);
+        
+        echo json_encode([
+            'data' => $categories,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => ceil($total / $limit)
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetBranches($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        // Initialize Branch model
+        $branchModel = new Branch();
+        
+        // Get query parameters for pagination and filtering
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+        $search = isset($_GET['search']) ? $_GET['search'] : '';
+        $status = isset($_GET['status']) ? $_GET['status'] : '';
+        
+        // Get branches with pagination and filtering
+        $branches = $branchModel->getAll($page, $limit, $search, $status);
+        $total = $branchModel->getCount($search, $status);
+        
+        echo json_encode([
+            'data' => $branches,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => ceil($total / $limit)
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetSuppliers($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        // Initialize Supplier model
+        $supplierModel = new Supplier();
+        
+        // Get query parameters for pagination and filtering
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+        $search = isset($_GET['search']) ? $_GET['search'] : '';
+        $status = isset($_GET['status']) ? $_GET['status'] : '';
+        
+        // Get suppliers with pagination and filtering
+        $suppliers = $supplierModel->getAll($page, $limit, $search, $status);
+        $total = $supplierModel->getCount($search, $status);
+        
+        echo json_encode([
+            'data' => $suppliers,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => ceil($total / $limit)
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Category CRUD Handlers
+function handleCreateCategory($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($input['name'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Category name is required']);
+            return;
+        }
+        
+        $categoryModel = new Category();
+        $categoryId = $categoryModel->create($input);
+        
+        echo json_encode([
+            'message' => 'Category created successfully',
+            'id' => $categoryId
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetCategory($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $categoryId = $params['id'];
+        
+        $categoryModel = new Category();
+        $category = $categoryModel->getById($categoryId);
+        
+        if (!$category) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Category not found']);
+            return;
+        }
+        
+        echo json_encode($category);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleUpdateCategory($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $categoryId = $params['id'];
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($input['name'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Category name is required']);
+            return;
+        }
+        
+        $categoryModel = new Category();
+        $success = $categoryModel->update($categoryId, $input);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Category updated successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Category not found or no changes made']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleDeleteCategory($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $categoryId = $params['id'];
+        
+        $categoryModel = new Category();
+        $success = $categoryModel->delete($categoryId);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Category deleted successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Category not found or cannot be deleted']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Branch CRUD Handlers
+function handleCreateBranch($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($input['name']) || empty($input['address'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Branch name and address are required']);
+            return;
+        }
+        
+        $branchModel = new Branch();
+        $branchId = $branchModel->create($input);
+        
+        echo json_encode([
+            'message' => 'Branch created successfully',
+            'id' => $branchId
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetBranch($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $branchId = $params['id'];
+        
+        $branchModel = new Branch();
+        $branch = $branchModel->getById($branchId);
+        
+        if (!$branch) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Branch not found']);
+            return;
+        }
+        
+        echo json_encode($branch);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleUpdateBranch($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $branchId = $params['id'];
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($input['name']) || empty($input['address'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Branch name and address are required']);
+            return;
+        }
+        
+        $branchModel = new Branch();
+        $success = $branchModel->update($branchId, $input);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Branch updated successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Branch not found or no changes made']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleDeleteBranch($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $branchId = $params['id'];
+        
+        $branchModel = new Branch();
+        $success = $branchModel->delete($branchId);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Branch deleted successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Branch not found or cannot be deleted']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Supplier CRUD Handlers
+function handleCreateSupplier($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($input['name']) || empty($input['contact_person'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Supplier name and contact person are required']);
+            return;
+        }
+        
+        $supplierModel = new Supplier();
+        $supplierId = $supplierModel->create($input);
+        
+        echo json_encode([
+            'message' => 'Supplier created successfully',
+            'id' => $supplierId
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetSupplier($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $supplierId = $params['id'];
+        
+        $supplierModel = new Supplier();
+        $supplier = $supplierModel->getById($supplierId);
+        
+        if (!$supplier) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Supplier not found']);
+            return;
+        }
+        
+        echo json_encode($supplier);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleUpdateSupplier($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $supplierId = $params['id'];
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($input['name']) || empty($input['contact_person'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Supplier name and contact person are required']);
+            return;
+        }
+        
+        $supplierModel = new Supplier();
+        $success = $supplierModel->update($supplierId, $input);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Supplier updated successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Supplier not found or no changes made']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleDeleteSupplier($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $supplierId = $params['id'];
+        
+        $supplierModel = new Supplier();
+        $success = $supplierModel->delete($supplierId);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Supplier deleted successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Supplier not found or cannot be deleted']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Active entities handlers for dropdowns
+function handleGetActiveCategories($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        $categoryModel = new Category();
+        $categories = $categoryModel->getActive();
+        
+        echo json_encode([
+            'data' => $categories,
+            'total' => count($categories)
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetActiveBranches($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        $branchModel = new Branch();
+        $branches = $branchModel->getActive();
+        
+        echo json_encode([
+            'data' => $branches,
+            'total' => count($branches)
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetActiveSuppliers($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        $supplierModel = new Supplier();
+        $suppliers = $supplierModel->getActive();
+        
+        echo json_encode([
+            'data' => $suppliers,
+            'total' => count($suppliers)
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
 }
