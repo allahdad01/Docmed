@@ -12,6 +12,10 @@ use PharmacySaaS\Models\DashboardStats;
 use PharmacySaaS\Models\Category;
 use PharmacySaaS\Models\Branch;
 use PharmacySaaS\Models\Supplier;
+use PharmacySaaS\Models\Doctor;
+use PharmacySaaS\Models\Patient;
+use PharmacySaaS\Models\Prescription;
+use PharmacySaaS\Models\Commission;
 
 // Load environment variables
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
@@ -75,6 +79,11 @@ $routes = [
         'api/categories' => 'handleCreateCategory',
         'api/branches' => 'handleCreateBranch',
         'api/suppliers' => 'handleCreateSupplier',
+        'api/doctors' => 'handleCreateDoctor',
+        'api/patients' => 'handleCreatePatient',
+        'api/prescriptions' => 'handleCreatePrescription',
+        'api/commissions/pharmacy' => 'handleCreatePharmacyCommission',
+        'api/commissions/lab' => 'handleCreateLabCommission',
         'api/tenants' => 'handleCreateTenant'
     ],
     'GET' => [
@@ -96,6 +105,23 @@ $routes = [
         'api/suppliers' => 'handleGetSuppliers',
         'api/suppliers/{id}' => 'handleGetSupplier',
         'api/suppliers/active' => 'handleGetActiveSuppliers',
+        'api/doctors' => 'handleGetDoctors',
+        'api/doctors/{id}' => 'handleGetDoctor',
+        'api/doctors/{id}/stats' => 'handleGetDoctorStats',
+        'api/doctors/{id}/medicines' => 'handleGetDoctorMedicines',
+        'api/doctors/{id}/pharmacies' => 'handleGetDoctorPharmacies',
+        'api/doctors/{id}/labs' => 'handleGetDoctorLabs',
+        'api/patients' => 'handleGetPatients',
+        'api/patients/{id}' => 'handleGetPatient',
+        'api/patients/{id}/history' => 'handleGetPatientHistory',
+        'api/prescriptions' => 'handleGetPrescriptions',
+        'api/prescriptions/{id}' => 'handleGetPrescription',
+        'api/prescriptions/{id}/items' => 'handleGetPrescriptionItems',
+        'api/commissions/pharmacy' => 'handleGetPharmacyCommissions',
+        'api/commissions/lab' => 'handleGetLabCommissions',
+        'api/commissions/summary' => 'handleGetCommissionSummary',
+        'api/pharmacies' => 'handleGetPharmacies',
+        'api/labs' => 'handleGetLabs',
         'api/dashboard/stats' => 'handleGetDashboardStats',
         'api/tenants/{id}' => 'handleGetTenant'
     ],
@@ -106,7 +132,12 @@ $routes = [
         'api/inventory/{id}' => 'handleUpdateInventory',
         'api/categories/{id}' => 'handleUpdateCategory',
         'api/branches/{id}' => 'handleUpdateBranch',
-        'api/suppliers/{id}' => 'handleUpdateSupplier'
+        'api/suppliers/{id}' => 'handleUpdateSupplier',
+        'api/doctors/{id}' => 'handleUpdateDoctor',
+        'api/patients/{id}' => 'handleUpdatePatient',
+        'api/prescriptions/{id}' => 'handleUpdatePrescription',
+        'api/commissions/pharmacy/{id}' => 'handleUpdatePharmacyCommission',
+        'api/commissions/lab/{id}' => 'handleUpdateLabCommission'
     ],
     'DELETE' => [
         'api/products/{id}' => 'handleDeleteProduct',
@@ -115,7 +146,12 @@ $routes = [
         'api/inventory/{id}' => 'handleDeleteInventory',
         'api/categories/{id}' => 'handleDeleteCategory',
         'api/branches/{id}' => 'handleDeleteBranch',
-        'api/suppliers/{id}' => 'handleDeleteSupplier'
+        'api/suppliers/{id}' => 'handleDeleteSupplier',
+        'api/doctors/{id}' => 'handleDeleteDoctor',
+        'api/patients/{id}' => 'handleDeletePatient',
+        'api/prescriptions/{id}' => 'handleDeletePrescription',
+        'api/commissions/pharmacy/{id}' => 'handleDeletePharmacyCommission',
+        'api/commissions/lab/{id}' => 'handleDeleteLabCommission'
     ]
 ];
 
@@ -1555,6 +1591,1045 @@ function handleGetActiveSuppliers($params) {
         echo json_encode([
             'data' => $suppliers,
             'total' => count($suppliers)
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Doctor Management Handlers
+function handleCreateDoctor($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        // Validate required fields
+        if (empty($input['name']) || empty($input['phone']) || empty($input['specialty'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Name, phone, and specialty are required']);
+            return;
+        }
+        
+        $doctorModel = new Doctor();
+        $doctorId = $doctorModel->create($input);
+        
+        if ($doctorId) {
+            echo json_encode([
+                'message' => 'Doctor created successfully',
+                'id' => $doctorId
+            ]);
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'Failed to create doctor']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetDoctors($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $search = isset($_GET['search']) ? $_GET['search'] : '';
+        
+        $doctorModel = new Doctor();
+        $doctors = $doctorModel->getAll($page, $limit, $search);
+        $total = $doctorModel->getCount($search);
+        
+        echo json_encode([
+            'data' => $doctors,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => ceil($total / $limit)
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetDoctor($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $doctorId = $params['id'];
+        
+        $doctorModel = new Doctor();
+        $doctor = $doctorModel->getById($doctorId);
+        
+        if ($doctor) {
+            echo json_encode(['data' => $doctor]);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Doctor not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleUpdateDoctor($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $doctorId = $params['id'];
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($input['name']) || empty($input['phone']) || empty($input['specialty'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Name, phone, and specialty are required']);
+            return;
+        }
+        
+        $doctorModel = new Doctor();
+        $success = $doctorModel->update($doctorId, $input);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Doctor updated successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Doctor not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleDeleteDoctor($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $doctorId = $params['id'];
+        
+        $doctorModel = new Doctor();
+        $success = $doctorModel->delete($doctorId);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Doctor deleted successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Doctor not found or cannot be deleted']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetDoctorStats($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $doctorId = $params['id'];
+        
+        $doctorModel = new Doctor();
+        $stats = $doctorModel->getStats($doctorId);
+        
+        echo json_encode(['data' => $stats]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetDoctorMedicines($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $doctorId = $params['id'];
+        
+        $doctorModel = new Doctor();
+        $medicines = $doctorModel->getPersonalMedicines($doctorId);
+        
+        echo json_encode(['data' => $medicines]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetDoctorPharmacies($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $doctorId = $params['id'];
+        
+        $doctorModel = new Doctor();
+        $pharmacies = $doctorModel->getPartnerPharmacies($doctorId);
+        
+        echo json_encode(['data' => $pharmacies]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetDoctorLabs($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $doctorId = $params['id'];
+        
+        $doctorModel = new Doctor();
+        $labs = $doctorModel->getPartnerLabs($doctorId);
+        
+        echo json_encode(['data' => $labs]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Patient Management Handlers
+function handleCreatePatient($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        // Validate required fields
+        if (empty($input['name']) || empty($input['phone']) || empty($input['age'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Name, phone, and age are required']);
+            return;
+        }
+        
+        $patientModel = new Patient();
+        $patientId = $patientModel->create($input);
+        
+        if ($patientId) {
+            echo json_encode([
+                'message' => 'Patient created successfully',
+                'id' => $patientId
+            ]);
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'Failed to create patient']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetPatients($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $search = isset($_GET['search']) ? $_GET['search'] : '';
+        $doctorId = isset($_GET['doctor_id']) ? (int)$_GET['doctor_id'] : null;
+        
+        $patientModel = new Patient();
+        
+        if ($doctorId) {
+            $patients = $patientModel->getByDoctor($doctorId, $page, $limit);
+            $total = $patientModel->getCount($search);
+        } else {
+            $patients = $patientModel->getAll($page, $limit, $search);
+            $total = $patientModel->getCount($search);
+        }
+        
+        echo json_encode([
+            'data' => $patients,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => ceil($total / $limit)
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetPatient($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $patientId = $params['id'];
+        
+        $patientModel = new Patient();
+        $patient = $patientModel->getById($patientId);
+        
+        if ($patient) {
+            echo json_encode(['data' => $patient]);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Patient not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleUpdatePatient($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $patientId = $params['id'];
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($input['name']) || empty($input['phone']) || empty($input['age'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Name, phone, and age are required']);
+            return;
+        }
+        
+        $patientModel = new Patient();
+        $success = $patientModel->update($patientId, $input);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Patient updated successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Patient not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleDeletePatient($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $patientId = $params['id'];
+        
+        $patientModel = new Patient();
+        $success = $patientModel->delete($patientId);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Patient deleted successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Patient not found or cannot be deleted']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetPatientHistory($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $patientId = $params['id'];
+        
+        $patientModel = new Patient();
+        $history = $patientModel->getMedicalHistory($patientId);
+        
+        echo json_encode(['data' => $history]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Prescription Management Handlers
+function handleCreatePrescription($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        // Validate required fields
+        if (empty($input['doctor_id']) || empty($input['patient_id']) || empty($input['items'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Doctor ID, patient ID, and items are required']);
+            return;
+        }
+        
+        $prescriptionModel = new Prescription();
+        $prescriptionId = $prescriptionModel->create($input);
+        
+        if ($prescriptionId) {
+            echo json_encode([
+                'message' => 'Prescription created successfully',
+                'id' => $prescriptionId
+            ]);
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'Failed to create prescription']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetPrescriptions($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $search = isset($_GET['search']) ? $_GET['search'] : '';
+        $doctorId = isset($_GET['doctor_id']) ? (int)$_GET['doctor_id'] : null;
+        $patientId = isset($_GET['patient_id']) ? (int)$_GET['patient_id'] : null;
+        
+        $prescriptionModel = new Prescription();
+        
+        if ($doctorId) {
+            $prescriptions = $prescriptionModel->getByDoctor($doctorId, $page, $limit);
+            $total = $prescriptionModel->getCount($search);
+        } elseif ($patientId) {
+            $prescriptions = $prescriptionModel->getByPatient($patientId, $page, $limit);
+            $total = $prescriptionModel->getCount($search);
+        } else {
+            $prescriptions = $prescriptionModel->getAll($page, $limit, $search);
+            $total = $prescriptionModel->getCount($search);
+        }
+        
+        echo json_encode([
+            'data' => $prescriptions,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => ceil($total / $limit)
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetPrescription($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $prescriptionId = $params['id'];
+        
+        $prescriptionModel = new Prescription();
+        $prescription = $prescriptionModel->getById($prescriptionId);
+        
+        if ($prescription) {
+            echo json_encode(['data' => $prescription]);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Prescription not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetPrescriptionItems($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $prescriptionId = $params['id'];
+        
+        $prescriptionModel = new Prescription();
+        $items = $prescriptionModel->getItems($prescriptionId);
+        
+        echo json_encode(['data' => $items]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleUpdatePrescription($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $prescriptionId = $params['id'];
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($input['doctor_id']) || empty($input['patient_id']) || empty($input['items'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Doctor ID, patient ID, and items are required']);
+            return;
+        }
+        
+        $prescriptionModel = new Prescription();
+        $success = $prescriptionModel->update($prescriptionId, $input);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Prescription updated successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Prescription not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleDeletePrescription($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $prescriptionId = $params['id'];
+        
+        $prescriptionModel = new Prescription();
+        $success = $prescriptionModel->delete($prescriptionId);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Prescription deleted successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Prescription not found or cannot be deleted']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Commission Management Handlers
+function handleCreatePharmacyCommission($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        // Validate required fields
+        if (empty($input['doctor_id']) || empty($input['pharmacy_id']) || !isset($input['amount'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Doctor ID, pharmacy ID, and amount are required']);
+            return;
+        }
+        
+        $commissionModel = new Commission();
+        $commissionId = $commissionModel->createPharmacyCommission($input);
+        
+        if ($commissionId) {
+            echo json_encode([
+                'message' => 'Pharmacy commission created successfully',
+                'id' => $commissionId
+            ]);
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'Failed to create pharmacy commission']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleCreateLabCommission($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        // Validate required fields
+        if (empty($input['doctor_id']) || empty($input['lab_id']) || !isset($input['amount'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Doctor ID, lab ID, and amount are required']);
+            return;
+        }
+        
+        $commissionModel = new Commission();
+        $commissionId = $commissionModel->createLabCommission($input);
+        
+        if ($commissionId) {
+            echo json_encode([
+                'message' => 'Lab commission created successfully',
+                'id' => $commissionId
+            ]);
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'Failed to create lab commission']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetPharmacyCommissions($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $search = isset($_GET['search']) ? $_GET['search'] : '';
+        $doctorId = isset($_GET['doctor_id']) ? (int)$_GET['doctor_id'] : null;
+        
+        $commissionModel = new Commission();
+        $commissions = $commissionModel->getPharmacyCommissions($page, $limit, $search, $doctorId);
+        $total = $commissionModel->getPharmacyCommissionCount($search, $doctorId);
+        
+        echo json_encode([
+            'data' => $commissions,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => ceil($total / $limit)
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetLabCommissions($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $search = isset($_GET['search']) ? $_GET['search'] : '';
+        $doctorId = isset($_GET['doctor_id']) ? (int)$_GET['doctor_id'] : null;
+        
+        $commissionModel = new Commission();
+        $commissions = $commissionModel->getLabCommissions($page, $limit, $search, $doctorId);
+        $total = $commissionModel->getLabCommissionCount($search, $doctorId);
+        
+        echo json_encode([
+            'data' => $commissions,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => ceil($total / $limit)
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetCommissionSummary($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $doctorId = isset($_GET['doctor_id']) ? (int)$_GET['doctor_id'] : null;
+        
+        $commissionModel = new Commission();
+        $summary = $commissionModel->getCommissionStats($doctorId);
+        
+        echo json_encode(['data' => $summary]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleUpdatePharmacyCommission($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $commissionId = $params['id'];
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        $commissionModel = new Commission();
+        $success = $commissionModel->updatePharmacyCommissionStatus($commissionId, $input['status']);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Pharmacy commission updated successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Commission not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleUpdateLabCommission($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $commissionId = $params['id'];
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        $commissionModel = new Commission();
+        $success = $commissionModel->updateLabCommissionStatus($commissionId, $input['status']);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Lab commission updated successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Commission not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleDeletePharmacyCommission($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $commissionId = $params['id'];
+        
+        $commissionModel = new Commission();
+        $success = $commissionModel->deletePharmacyCommission($commissionId);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Pharmacy commission deleted successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Commission not found or cannot be deleted']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleDeleteLabCommission($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $commissionId = $params['id'];
+        
+        $commissionModel = new Commission();
+        $success = $commissionModel->deleteLabCommission($commissionId);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Lab commission deleted successfully']);
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'Commission not found or cannot be deleted']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetPharmacies($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $tenant = $tenantManager->getCurrentTenant();
+        
+        // Get search and pagination parameters
+        $search = $_GET['search'] ?? '';
+        $page = (int)($_GET['page'] ?? 1);
+        $limit = (int)($_GET['limit'] ?? 50);
+        $offset = ($page - 1) * $limit;
+        
+        // For now, we'll use branches as pharmacies since they're essentially the same
+        // In a real implementation, you might have a separate pharmacies table
+        $branchModel = new Branch();
+        $pharmacies = $branchModel->getAll($tenant['id'], $search, $limit, $offset);
+        $total = $branchModel->getTotalCount($tenant['id'], $search);
+        
+        echo json_encode([
+            'data' => $pharmacies,
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $limit,
+                'total' => $total,
+                'total_pages' => ceil($total / $limit)
+            ]
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetLabs($params) {
+    global $authManager, $tenantManager;
+    
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $tenant = $tenantManager->getCurrentTenant();
+        
+        // Get search and pagination parameters
+        $search = $_GET['search'] ?? '';
+        $page = (int)($_GET['page'] ?? 1);
+        $limit = (int)($_GET['limit'] ?? 50);
+        $offset = ($page - 1) * $limit;
+        
+        // For now, we'll use branches as labs since they're essentially the same
+        // In a real implementation, you might have a separate labs table
+        $branchModel = new Branch();
+        $labs = $branchModel->getAll($tenant['id'], $search, $limit, $offset);
+        $total = $branchModel->getTotalCount($tenant['id'], $search);
+        
+        echo json_encode([
+            'data' => $labs,
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $limit,
+                'total' => $total,
+                'total_pages' => ceil($total / $limit)
+            ]
         ]);
     } catch (\Exception $e) {
         http_response_code(400);
