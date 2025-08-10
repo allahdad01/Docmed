@@ -437,4 +437,109 @@ class Inventory
 
         return $summary;
     }
+
+    /**
+     * Get all inventory items with pagination and filters
+     */
+    public function getAll($filters = [], $page = 1, $limit = 20)
+    {
+        $offset = ($page - 1) * $limit;
+        
+        $sql = "SELECT 
+                    i.id,
+                    i.product_id,
+                    p.name as product_name,
+                    i.branch_id,
+                    b.name as branch_name,
+                    i.batch_number,
+                    i.expiry_date,
+                    i.quantity,
+                    i.unit_cost,
+                    i.supplier_id,
+                    s.name as supplier_name,
+                    i.purchase_date,
+                    i.notes,
+                    i.created_at
+                FROM inventory i
+                LEFT JOIN products p ON i.product_id = p.id
+                LEFT JOIN branches b ON i.branch_id = b.id
+                LEFT JOIN suppliers s ON i.supplier_id = s.id
+                WHERE i.tenant_id = ?";
+        
+        $params = [$this->tenantId];
+        
+        // Apply filters
+        if (!empty($filters['product_id'])) {
+            $sql .= " AND i.product_id = ?";
+            $params[] = $filters['product_id'];
+        }
+        
+        if (!empty($filters['branch_id'])) {
+            $sql .= " AND i.branch_id = ?";
+            $params[] = $filters['branch_id'];
+        }
+        
+        if (!empty($filters['supplier_id'])) {
+            $sql .= " AND i.supplier_id = ?";
+            $params[] = $filters['supplier_id'];
+        }
+        
+        if (!empty($filters['low_stock'])) {
+            $sql .= " AND i.quantity <= 10";
+        }
+        
+        if (!empty($filters['out_of_stock'])) {
+            $sql .= " AND i.quantity = 0";
+        }
+        
+        if (!empty($filters['expiring_soon'])) {
+            $sql .= " AND i.expiry_date IS NOT NULL AND i.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)";
+        }
+        
+        $sql .= " ORDER BY i.created_at DESC LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+        
+        return $this->db->fetchAll($sql, $params);
+    }
+
+    /**
+     * Get total count of inventory items with filters
+     */
+    public function getCount($filters = [])
+    {
+        $sql = "SELECT COUNT(*) as total FROM inventory i WHERE i.tenant_id = ?";
+        $params = [$this->tenantId];
+        
+        // Apply filters
+        if (!empty($filters['product_id'])) {
+            $sql .= " AND i.product_id = ?";
+            $params[] = $filters['product_id'];
+        }
+        
+        if (!empty($filters['branch_id'])) {
+            $sql .= " AND i.branch_id = ?";
+            $params[] = $filters['branch_id'];
+        }
+        
+        if (!empty($filters['supplier_id'])) {
+            $sql .= " AND i.supplier_id = ?";
+            $params[] = $filters['supplier_id'];
+        }
+        
+        if (!empty($filters['low_stock'])) {
+            $sql .= " AND i.quantity <= 10";
+        }
+        
+        if (!empty($filters['out_of_stock'])) {
+            $sql .= " AND i.quantity = 0";
+        }
+        
+        if (!empty($filters['expiring_soon'])) {
+            $sql .= " AND i.expiry_date IS NOT NULL AND i.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)";
+        }
+        
+        $result = $this->db->fetch($sql, $params);
+        return $result['total'] ?? 0;
+    }
 }

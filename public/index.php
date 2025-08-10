@@ -6,6 +6,8 @@ use PharmacySaaS\Core\TenantManager;
 use PharmacySaaS\Auth\AuthManager;
 use PharmacySaaS\Models\Product;
 use PharmacySaaS\Models\Sale;
+use PharmacySaaS\Models\Customer;
+use PharmacySaaS\Models\Inventory;
 use PharmacySaaS\Models\DashboardStats;
 
 // Load environment variables
@@ -65,6 +67,7 @@ $routes = [
         'api/auth/register' => 'handleRegister',
         'api/products' => 'handleCreateProduct',
         'api/sales' => 'handleCreateSale',
+        'api/customers' => 'handleCreateCustomer',
         'api/tenants' => 'handleCreateTenant'
     ],
     'GET' => [
@@ -72,16 +75,21 @@ $routes = [
         'api/products/{id}' => 'handleGetProduct',
         'api/sales' => 'handleGetSales',
         'api/sales/{id}' => 'handleGetSale',
+        'api/customers' => 'handleGetCustomers',
+        'api/customers/{id}' => 'handleGetCustomer',
+        'api/inventory' => 'handleGetInventory',
         'api/dashboard/stats' => 'handleGetDashboardStats',
         'api/tenants/{id}' => 'handleGetTenant'
     ],
     'PUT' => [
         'api/products/{id}' => 'handleUpdateProduct',
-        'api/sales/{id}' => 'handleUpdateSale'
+        'api/sales/{id}' => 'handleUpdateSale',
+        'api/customers/{id}' => 'handleUpdateCustomer'
     ],
     'DELETE' => [
         'api/products/{id}' => 'handleDeleteProduct',
-        'api/sales/{id}' => 'handleDeleteSale'
+        'api/sales/{id}' => 'handleDeleteSale',
+        'api/customers/{id}' => 'handleDeleteCustomer'
     ]
 ];
 
@@ -549,6 +557,200 @@ function handleGetTenant($params) {
         }
         
         echo json_encode($tenant);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetCustomers($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        $filters = $_GET;
+        $page = (int)($_GET['page'] ?? 1);
+        $limit = (int)($_GET['limit'] ?? 20);
+        
+        $customer = new Customer();
+        $customers = $customer->getAll($filters, $page, $limit);
+        $total = $customer->getCount($filters);
+        
+        echo json_encode([
+            'data' => $customers,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $total,
+                'pages' => ceil($total / $limit)
+            ]
+        ]);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetCustomer($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        $customer = new Customer();
+        $customerData = $customer->getById($params['id']);
+        
+        if (!$customerData) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Customer not found']);
+            return;
+        }
+        
+        echo json_encode($customerData);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleCreateCustomer($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $authManager->requirePermission('customers_manage');
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        $input['created_by'] = $user['id'];
+        
+        $customer = new Customer();
+        $customerId = $customer->create($input);
+        
+        echo json_encode(['id' => $customerId, 'message' => 'Customer created successfully']);
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleUpdateCustomer($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $authManager->requirePermission('customers_manage');
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        $customer = new Customer();
+        $success = $customer->update($params['id'], $input);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Customer updated successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Customer not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleDeleteCustomer($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        $authManager->requirePermission('customers_manage');
+        
+        $customer = new Customer();
+        $success = $customer->delete($params['id']);
+        
+        if ($success) {
+            echo json_encode(['message' => 'Customer deleted successfully']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Customer not found']);
+        }
+    } catch (\Exception $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function handleGetInventory($params) {
+    global $authManager, $tenantManager;
+    
+    // Check authentication
+    $token = getAuthToken();
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Authentication required']);
+        return;
+    }
+    
+    try {
+        $user = $authManager->validateToken($token);
+        
+        $filters = $_GET;
+        $page = (int)($_GET['page'] ?? 1);
+        $limit = (int)($_GET['limit'] ?? 20);
+        
+        $inventory = new Inventory();
+        $inventoryData = $inventory->getAll($filters, $page, $limit);
+        $total = $inventory->getCount($filters);
+        
+        echo json_encode([
+            'data' => $inventoryData,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $total,
+                'pages' => ceil($total / $limit)
+            ]
+        ]);
     } catch (\Exception $e) {
         http_response_code(400);
         echo json_encode(['error' => $e->getMessage()]);
