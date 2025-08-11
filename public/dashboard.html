@@ -110,8 +110,33 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link" onclick="showCommissions()">
-                                <i class="bi bi-cash-coin"></i> Commissions
+                            <a class="nav-link" href="#" onclick="showSection('commissions')">
+                                <i class="fas fa-handshake"></i> Commissions
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('medicines')">
+                                <i class="fas fa-pills"></i> Medicines
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('laboratory-tests')">
+                                <i class="fas fa-flask"></i> Laboratory Tests
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('expenses')">
+                                <i class="fas fa-receipt"></i> Expenses
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('payments')">
+                                <i class="fas fa-credit-card"></i> Payments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('reports')">
+                                <i class="fas fa-chart-bar"></i> Reports
                             </a>
                         </li>
                     </ul>
@@ -354,6 +379,399 @@
                         <div id="commissions-table">
                             <!-- Commissions will be loaded here -->
                         </div>
+                    </div>
+                </div>
+
+                <!-- Medicines Section -->
+                <div id="medicines" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-pills"></i> Medicines Management</h2>
+                        <button class="btn btn-primary" onclick="showAddMedicineModal()">
+                            <i class="fas fa-plus"></i> Add Medicine
+                        </button>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="medicineSearch" placeholder="Search medicines...">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-control" id="medicineTypeFilter">
+                                <option value="">All Types</option>
+                                <option value="tablet">Tablet</option>
+                                <option value="capsule">Capsule</option>
+                                <option value="syrup">Syrup</option>
+                                <option value="injection">Injection</option>
+                                <option value="cream">Cream</option>
+                                <option value="ointment">Ointment</option>
+                                <option value="drops">Drops</option>
+                                <option value="inhaler">Inhaler</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-secondary w-100" onclick="loadMedicines()">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Generic Name</th>
+                                    <th>Type</th>
+                                    <th>Strength</th>
+                                    <th>Manufacturer</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="medicinesTableBody">
+                                <!-- Medicines will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <nav aria-label="Medicines pagination">
+                        <ul class="pagination justify-content-center" id="medicinesPagination">
+                            <!-- Pagination will be loaded here -->
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Laboratory Tests Section -->
+                <div id="laboratory-tests" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-flask"></i> Laboratory Tests Management</h2>
+                        <button class="btn btn-primary" onclick="showAddLaboratoryTestModal()">
+                            <i class="fas fa-plus"></i> Add Test
+                        </button>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="labTestSearch" placeholder="Search tests...">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-control" id="labTestCategoryFilter">
+                                <option value="">All Categories</option>
+                                <option value="Hematology">Hematology</option>
+                                <option value="Biochemistry">Biochemistry</option>
+                                <option value="Endocrinology">Endocrinology</option>
+                                <option value="Urinalysis">Urinalysis</option>
+                                <option value="Radiology">Radiology</option>
+                                <option value="Cardiology">Cardiology</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-secondary w-100" onclick="loadLaboratoryTests()">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Test Name</th>
+                                    <th>Test Code</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Commission</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="laboratoryTestsTableBody">
+                                <!-- Laboratory tests will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <nav aria-label="Laboratory tests pagination">
+                        <ul class="pagination justify-content-center" id="laboratoryTestsPagination">
+                            <!-- Pagination will be loaded here -->
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Expenses Section -->
+                <div id="expenses" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-receipt"></i> Expenses Management</h2>
+                        <button class="btn btn-primary" onclick="showAddExpenseModal()">
+                            <i class="fas fa-plus"></i> Add Expense
+                        </button>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="expenseSearch" placeholder="Search expenses...">
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-control" id="expenseCategoryFilter">
+                                <option value="">All Categories</option>
+                                <option value="rent">Clinic Rent</option>
+                                <option value="salary">Staff Salaries</option>
+                                <option value="utilities">Utilities</option>
+                                <option value="supplies">Medical Supplies</option>
+                                <option value="equipment">Medical Equipment</option>
+                                <option value="marketing">Marketing</option>
+                                <option value="travel">Travel</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="date" class="form-control" id="expenseDateFrom" placeholder="From Date">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="date" class="form-control" id="expenseDateTo" placeholder="To Date">
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-secondary w-100" onclick="loadExpenses()">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total Expenses</h5>
+                                    <h3 id="totalExpenses">$0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">This Month</h5>
+                                    <h3 id="monthlyExpenses">$0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">This Year</h5>
+                                    <h3 id="yearlyExpenses">$0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Average/Day</h5>
+                                    <h3 id="averageExpenses">$0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Payment Method</th>
+                                    <th>Reference</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expensesTableBody">
+                                <!-- Expenses will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <nav aria-label="Expenses pagination">
+                        <ul class="pagination justify-content-center" id="expensesPagination">
+                            <!-- Pagination will be loaded here -->
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Payments Section -->
+                <div id="payments" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-credit-card"></i> Payments Management</h2>
+                        <button class="btn btn-primary" onclick="showAddPaymentModal()">
+                            <i class="fas fa-plus"></i> Add Payment
+                        </button>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="paymentSearch" placeholder="Search payments...">
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-control" id="paymentTypeFilter">
+                                <option value="">All Types</option>
+                                <option value="consultation">Consultation</option>
+                                <option value="medicine">Medicine</option>
+                                <option value="lab_test">Lab Test</option>
+                                <option value="combined">Combined</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-control" id="paymentStatusFilter">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="partial">Partial</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                                <option value="refunded">Refunded</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="date" class="form-control" id="paymentDateFrom" placeholder="From Date">
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-secondary w-100" onclick="loadPayments()">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total Received</h5>
+                                    <h3 id="totalPayments">$0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Pending</h5>
+                                    <h3 id="pendingPayments">$0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">This Month</h5>
+                                    <h3 id="monthlyPayments">$0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">This Year</h5>
+                                    <h3 id="yearlyPayments">$0.00</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Patient</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                    <th>Receipt</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsTableBody">
+                                <!-- Payments will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <nav aria-label="Payments pagination">
+                        <ul class="pagination justify-content-center" id="paymentsPagination">
+                            <!-- Pagination will be loaded here -->
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Reports Section -->
+                <div id="reports" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-chart-bar"></i> Reports & Analytics</h2>
+                        <div>
+                            <button class="btn btn-success me-2" onclick="exportReport('pdf')">
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </button>
+                            <button class="btn btn-info" onclick="exportReport('excel')">
+                                <i class="fas fa-file-excel"></i> Export Excel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Date Range</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label">From Date</label>
+                                            <input type="date" class="form-control" id="reportDateFrom">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">To Date</label>
+                                            <input type="date" class="form-control" id="reportDateTo">
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary mt-3" onclick="generateReport()">
+                                        <i class="fas fa-chart-line"></i> Generate Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Report Type</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="reportType" id="prescriptionReport" value="prescription" checked>
+                                        <label class="form-check-label" for="prescriptionReport">
+                                            Prescription Report
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="reportType" id="commissionReport" value="commission">
+                                        <label class="form-check-label" for="commissionReport">
+                                            Commission Report
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="reportType" id="financialReport" value="financial">
+                                        <label class="form-check-label" for="financialReport">
+                                            Financial Report
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="reportContent">
+                        <!-- Report content will be generated here -->
                     </div>
                 </div>
             </main>
@@ -1365,6 +1783,443 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" onclick="saveLabCommission()">Save Commission</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Laboratory Test Modal -->
+    <div class="modal fade" id="laboratoryTestModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="laboratoryTestModalTitle">Add Laboratory Test</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="laboratoryTestForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Test Name *</label>
+                                    <input type="text" class="form-control" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Test Code</label>
+                                    <input type="text" class="form-control" name="test_code">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-control" name="category">
+                                        <option value="">Select Category</option>
+                                        <option value="Hematology">Hematology</option>
+                                        <option value="Biochemistry">Biochemistry</option>
+                                        <option value="Endocrinology">Endocrinology</option>
+                                        <option value="Urinalysis">Urinalysis</option>
+                                        <option value="Radiology">Radiology</option>
+                                        <option value="Cardiology">Cardiology</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Price</label>
+                                    <input type="number" class="form-control" name="price" step="0.01" min="0">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Commission Amount</label>
+                                    <input type="number" class="form-control" name="commission_amount" step="0.01" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Commission Type</label>
+                                    <select class="form-control" name="commission_type">
+                                        <option value="fixed">Fixed Amount</option>
+                                        <option value="percentage">Percentage</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Preparation Instructions</label>
+                            <textarea class="form-control" name="preparation_instructions" rows="2"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Normal Range</label>
+                                    <input type="text" class="form-control" name="normal_range">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Unit</label>
+                                    <input type="text" class="form-control" name="unit">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveLaboratoryTest()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Medicine Modal -->
+    <div class="modal fade" id="medicineModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="medicineModalTitle">Add Medicine</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="medicineForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Medicine Name *</label>
+                                    <input type="text" class="form-control" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Generic Name</label>
+                                    <input type="text" class="form-control" name="generic_name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Brand Name</label>
+                                    <input type="text" class="form-control" name="brand_name">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Medicine Type *</label>
+                                    <select class="form-control" name="medicine_type" required>
+                                        <option value="">Select Type</option>
+                                        <option value="tablet">Tablet</option>
+                                        <option value="capsule">Capsule</option>
+                                        <option value="syrup">Syrup</option>
+                                        <option value="injection">Injection</option>
+                                        <option value="cream">Cream</option>
+                                        <option value="ointment">Ointment</option>
+                                        <option value="drops">Drops</option>
+                                        <option value="inhaler">Inhaler</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Dosage Form</label>
+                                    <input type="text" class="form-control" name="dosage_form">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Strength</label>
+                                    <input type="number" class="form-control" name="strength" step="0.01" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Unit</label>
+                                    <input type="text" class="form-control" name="unit">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Manufacturer</label>
+                            <input type="text" class="form-control" name="manufacturer">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Active Ingredients</label>
+                                    <textarea class="form-control" name="active_ingredients" rows="2"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Side Effects</label>
+                                    <textarea class="form-control" name="side_effects" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Contraindications</label>
+                                    <textarea class="form-control" name="contraindications" rows="2"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Storage Conditions</label>
+                                    <textarea class="form-control" name="storage_conditions" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="date" class="form-control" name="expiry_date">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveMedicine()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Expense Modal -->
+    <div class="modal fade" id="expenseModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="expenseModalTitle">Add Expense</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="expenseForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Expense Date *</label>
+                                    <input type="date" class="form-control" name="expense_date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Category *</label>
+                                    <select class="form-control" name="category" required>
+                                        <option value="">Select Category</option>
+                                        <option value="rent">Clinic Rent</option>
+                                        <option value="salary">Staff Salaries</option>
+                                        <option value="utilities">Utilities</option>
+                                        <option value="supplies">Medical Supplies</option>
+                                        <option value="equipment">Medical Equipment</option>
+                                        <option value="marketing">Marketing</option>
+                                        <option value="travel">Travel</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description *</label>
+                            <textarea class="form-control" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Amount *</label>
+                                    <input type="number" class="form-control" name="amount" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Payment Method</label>
+                                    <select class="form-control" name="payment_method">
+                                        <option value="cash">Cash</option>
+                                        <option value="check">Check</option>
+                                        <option value="credit_card">Credit Card</option>
+                                        <option value="debit_card">Debit Card</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="online_payment">Online Payment</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Reference Number</label>
+                                    <input type="text" class="form-control" name="reference_number">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Vendor/Supplier</label>
+                                    <input type="text" class="form-control" name="vendor">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" name="notes" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveExpense()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Payment Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalTitle">Add Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="paymentForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Payment Date *</label>
+                                    <input type="date" class="form-control" name="payment_date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Payment Type *</label>
+                                    <select class="form-control" name="payment_type" required>
+                                        <option value="">Select Type</option>
+                                        <option value="consultation">Consultation</option>
+                                        <option value="medicine">Medicine</option>
+                                        <option value="lab_test">Lab Test</option>
+                                        <option value="combined">Combined</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Patient</label>
+                                    <select class="form-control" name="patient_id" id="paymentPatientSelect">
+                                        <option value="">Select Patient</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Prescription</label>
+                                    <select class="form-control" name="prescription_id" id="paymentPrescriptionSelect">
+                                        <option value="">Select Prescription</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Consultation Fee</label>
+                                    <input type="number" class="form-control" name="consultation_fee" step="0.01" min="0" value="0.00">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Medicine Cost</label>
+                                    <input type="number" class="form-control" name="medicine_cost" step="0.01" min="0" value="0.00">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Lab Test Cost</label>
+                                    <input type="number" class="form-control" name="lab_test_cost" step="0.01" min="0" value="0.00">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Total Amount *</label>
+                                    <input type="number" class="form-control" name="total_amount" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Discount Amount</label>
+                                    <input type="number" class="form-control" name="discount_amount" step="0.01" min="0" value="0.00">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Tax Amount</label>
+                                    <input type="number" class="form-control" name="tax_amount" step="0.01" min="0" value="0.00">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Payment Method *</label>
+                                    <select class="form-control" name="payment_method" required>
+                                        <option value="">Select Method</option>
+                                        <option value="cash">Cash</option>
+                                        <option value="check">Check</option>
+                                        <option value="credit_card">Credit Card</option>
+                                        <option value="debit_card">Debit Card</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="online_payment">Online Payment</option>
+                                        <option value="insurance">Insurance</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Payment Status</label>
+                                    <select class="form-control" name="payment_status">
+                                        <option value="pending">Pending</option>
+                                        <option value="partial">Partial</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                        <option value="refunded">Refunded</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Receipt Number</label>
+                            <input type="text" class="form-control" name="receipt_number">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" name="notes" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="savePayment()">Save</button>
                 </div>
             </div>
         </div>
