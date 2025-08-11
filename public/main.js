@@ -10,6 +10,12 @@ import './navigation.js';
 // Utility functions
 import './js/utils.js';
 
+// Specialized modules
+import './js/modal-manager.js';
+import './js/search-filters.js';
+import './js/form-validation.js';
+import './js/data-tables.js';
+
 // Core business modules
 import './js/inventory.js';
 import './js/categories.js';
@@ -49,8 +55,19 @@ window.showPurchases = window.showPurchases || (() => import('./js/purchases.js'
 window.showSales = window.showSales || (() => import('./js/sales.js').then(m => m.showSales()));
 window.showCustomers = window.showCustomers || (() => import('./js/customers.js').then(m => m.showCustomers()));
 
+// Make utility functions globally available
+window.hideAllSections = window.hideAllSections || (() => import('./js/utils.js').then(m => m.hideAllSections()));
+window.showAlert = window.showAlert || (() => import('./js/utils.js').then(m => m.showAlert()));
+
+// Make modal functions globally available
+window.openModal = window.openModal || (() => import('./js/modal-manager.js').then(m => m.openModal()));
+window.closeModal = window.closeModal || (() => import('./js/modal-manager.js').then(m => m.closeModal()));
+
 // Initialize dashboard stats on load
 document.addEventListener('DOMContentLoaded', () => {
     // Load initial dashboard statistics
     import('./js/dashboard-stats.js').then(m => m.loadDashboardStats());
+    
+    // Initialize global utilities
+    console.log('All modules loaded successfully');
 });
