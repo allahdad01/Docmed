@@ -115,27 +115,27 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" onclick="showSection('medicines')">
+                            <a class="nav-link" href="#" onclick="showMedicines()">
                                 <i class="fas fa-pills"></i> Medicines
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" onclick="showSection('laboratory-tests')">
+                            <a class="nav-link" href="#" onclick="showLaboratoryTests()">
                                 <i class="fas fa-flask"></i> Laboratory Tests
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" onclick="showSection('expenses')">
+                            <a class="nav-link" href="#" onclick="showExpenses()">
                                 <i class="fas fa-receipt"></i> Expenses
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" onclick="showSection('payments')">
+                            <a class="nav-link" href="#" onclick="showPayments()">
                                 <i class="fas fa-credit-card"></i> Payments
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" onclick="showSection('reports')">
+                            <a class="nav-link" href="#" onclick="showReports()">
                                 <i class="fas fa-chart-bar"></i> Reports
                             </a>
                         </li>
@@ -155,6 +155,9 @@
 
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Alert Container -->
+                <div id="alert-container" class="mt-3"></div>
+                
                 <!-- Dashboard Section -->
                 <div id="dashboard-section">
                     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -2352,6 +2355,11 @@
             document.getElementById('patients-section').style.display = 'none';
             document.getElementById('prescriptions-section').style.display = 'none';
             document.getElementById('commissions-section').style.display = 'none';
+            document.getElementById('medicines').style.display = 'none';
+            document.getElementById('laboratory-tests').style.display = 'none';
+            document.getElementById('expenses').style.display = 'none';
+            document.getElementById('payments').style.display = 'none';
+            document.getElementById('reports').style.display = 'none';
         }
 
         // API functions
@@ -4602,6 +4610,794 @@
         }
 
         // Helper functions for advanced features
+
+        // ===== MEDICINES MANAGEMENT =====
+
+        function showAddMedicineModal() {
+            document.getElementById('medicineModalTitle').textContent = 'Add Medicine';
+            document.getElementById('medicineForm').reset();
+            document.getElementById('medicineForm').removeAttribute('data-edit-id');
+            new bootstrap.Modal(document.getElementById('medicineModal')).show();
+        }
+
+        function showEditMedicineModal(id) {
+            // Load medicine data and show edit modal
+            fetch(`api/medicines/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const medicine = data.data;
+                        document.getElementById('medicineModalTitle').textContent = 'Edit Medicine';
+                        const form = document.getElementById('medicineForm');
+                        form.setAttribute('data-edit-id', id);
+                        
+                        // Populate form fields
+                        form.name.value = medicine.name;
+                        form.generic_name.value = medicine.generic_name || '';
+                        form.brand_name.value = medicine.brand_name || '';
+                        form.medicine_type.value = medicine.medicine_type;
+                        form.dosage_form.value = medicine.dosage_form || '';
+                        form.strength.value = medicine.strength || '';
+                        form.unit.value = medicine.unit || '';
+                        form.manufacturer.value = medicine.manufacturer || '';
+                        form.description.value = medicine.description || '';
+                        form.active_ingredients.value = medicine.active_ingredients || '';
+                        form.side_effects.value = medicine.side_effects || '';
+                        form.contraindications.value = medicine.contraindications || '';
+                        form.storage_conditions.value = medicine.storage_conditions || '';
+                        form.expiry_date.value = medicine.expiry_date || '';
+                        
+                        new bootstrap.Modal(document.getElementById('medicineModal')).show();
+                    } else {
+                        showAlert('Error loading medicine data', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error loading medicine data', 'danger');
+                });
+        }
+
+        function saveMedicine() {
+            const form = document.getElementById('medicineForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            const editId = form.getAttribute('data-edit-id');
+            const url = editId ? `api/medicines/${editId}` : 'api/medicines';
+            const method = editId ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showAlert(editId ? 'Medicine updated successfully' : 'Medicine added successfully', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('medicineModal')).hide();
+                    loadMedicines();
+                } else {
+                    showAlert(result.error || 'Error saving medicine', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error saving medicine', 'danger');
+            });
+        }
+
+        function deleteMedicine(id) {
+            if (confirm('Are you sure you want to delete this medicine?')) {
+                fetch(`api/medicines/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showAlert('Medicine deleted successfully', 'success');
+                        loadMedicines();
+                    } else {
+                        showAlert(result.error || 'Error deleting medicine', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error deleting medicine', 'danger');
+                });
+            }
+        }
+
+        function loadMedicines(page = 1) {
+            const search = document.getElementById('medicineSearch').value;
+            const typeFilter = document.getElementById('medicineTypeFilter').value;
+            
+            let url = `api/medicines?page=${page}&limit=20`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (typeFilter) url += `&type=${encodeURIComponent(typeFilter)}`;
+            
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayMedicines(data.data);
+                    displayPagination(data.pagination, 'medicinesPagination', loadMedicines);
+                } else {
+                    showAlert('Error loading medicines', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error loading medicines', 'danger');
+            });
+        }
+
+        function displayMedicines(medicines) {
+            const tbody = document.getElementById('medicinesTableBody');
+            tbody.innerHTML = '';
+            
+            medicines.forEach(medicine => {
+                const row = `
+                    <tr>
+                        <td>${medicine.name}</td>
+                        <td>${medicine.generic_name || '-'}</td>
+                        <td><span class="badge bg-info">${medicine.medicine_type}</span></td>
+                        <td>${medicine.strength ? medicine.strength + ' ' + (medicine.unit || '') : '-'}</td>
+                        <td>${medicine.manufacturer || '-'}</td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="showEditMedicineModal(${medicine.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteMedicine(${medicine.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // ===== LABORATORY TESTS MANAGEMENT =====
+
+        function showAddLaboratoryTestModal() {
+            document.getElementById('laboratoryTestModalTitle').textContent = 'Add Laboratory Test';
+            document.getElementById('laboratoryTestForm').reset();
+            document.getElementById('laboratoryTestForm').removeAttribute('data-edit-id');
+            new bootstrap.Modal(document.getElementById('laboratoryTestModal')).show();
+        }
+
+        function showEditLaboratoryTestModal(id) {
+            fetch(`api/laboratory-tests/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const test = data.data;
+                        document.getElementById('laboratoryTestModalTitle').textContent = 'Edit Laboratory Test';
+                        const form = document.getElementById('laboratoryTestForm');
+                        form.setAttribute('data-edit-id', id);
+                        
+                        // Populate form fields
+                        form.name.value = test.name;
+                        form.test_code.value = test.test_code || '';
+                        form.category.value = test.category || '';
+                        form.price.value = test.price || '';
+                        form.commission_amount.value = test.commission_amount || '';
+                        form.commission_type.value = test.commission_type || 'fixed';
+                        form.description.value = test.description || '';
+                        form.preparation_instructions.value = test.preparation_instructions || '';
+                        form.normal_range.value = test.normal_range || '';
+                        form.unit.value = test.unit || '';
+                        
+                        new bootstrap.Modal(document.getElementById('laboratoryTestModal')).show();
+                    } else {
+                        showAlert('Error loading test data', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error loading test data', 'danger');
+                });
+        }
+
+        function saveLaboratoryTest() {
+            const form = document.getElementById('laboratoryTestForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            const editId = form.getAttribute('data-edit-id');
+            const url = editId ? `api/laboratory-tests/${editId}` : 'api/laboratory-tests';
+            const method = editId ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showAlert(editId ? 'Test updated successfully' : 'Test added successfully', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('laboratoryTestModal')).hide();
+                    loadLaboratoryTests();
+                } else {
+                    showAlert(result.error || 'Error saving test', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error saving test', 'danger');
+            });
+        }
+
+        function deleteLaboratoryTest(id) {
+            if (confirm('Are you sure you want to delete this test?')) {
+                fetch(`api/laboratory-tests/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showAlert('Test deleted successfully', 'success');
+                        loadLaboratoryTests();
+                    } else {
+                        showAlert(result.error || 'Error deleting test', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error deleting test', 'danger');
+                });
+            }
+        }
+
+        function loadLaboratoryTests(page = 1) {
+            const search = document.getElementById('labTestSearch').value;
+            const categoryFilter = document.getElementById('labTestCategoryFilter').value;
+            
+            let url = `api/laboratory-tests?page=${page}&limit=20`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (categoryFilter) url += `&category=${encodeURIComponent(categoryFilter)}`;
+            
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayLaboratoryTests(data.data);
+                    displayPagination(data.pagination, 'labTestsPagination', loadLaboratoryTests);
+                } else {
+                    showAlert('Error loading tests', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error loading tests', 'danger');
+            });
+        }
+
+        function displayLaboratoryTests(tests) {
+            const tbody = document.getElementById('labTestsTableBody');
+            tbody.innerHTML = '';
+            
+            tests.forEach(test => {
+                const row = `
+                    <tr>
+                        <td>${test.name}</td>
+                        <td>${test.test_code || '-'}</td>
+                        <td><span class="badge bg-info">${test.category || 'General'}</span></td>
+                        <td>$${test.price || '0.00'}</td>
+                        <td>$${test.commission_amount || '0.00'}</td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="showEditLaboratoryTestModal(${test.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteLaboratoryTest(${test.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // ===== EXPENSES MANAGEMENT =====
+
+        function showAddExpenseModal() {
+            document.getElementById('expenseModalTitle').textContent = 'Add Expense';
+            document.getElementById('expenseForm').reset();
+            document.getElementById('expenseForm').removeAttribute('data-edit-id');
+            new bootstrap.Modal(document.getElementById('expenseModal')).show();
+        }
+
+        function showEditExpenseModal(id) {
+            fetch(`api/expenses/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const expense = data.data;
+                        document.getElementById('expenseModalTitle').textContent = 'Edit Expense';
+                        const form = document.getElementById('expenseForm');
+                        form.setAttribute('data-edit-id', id);
+                        
+                        // Populate form fields
+                        form.expense_date.value = expense.expense_date;
+                        form.category.value = expense.category;
+                        form.description.value = expense.description;
+                        form.amount.value = expense.amount;
+                        form.payment_method.value = expense.payment_method || 'cash';
+                        form.reference_number.value = expense.reference_number || '';
+                        form.vendor.value = expense.vendor || '';
+                        form.notes.value = expense.notes || '';
+                        
+                        new bootstrap.Modal(document.getElementById('expenseModal')).show();
+                    } else {
+                        showAlert('Error loading expense data', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error loading expense data', 'danger');
+                });
+        }
+
+        function saveExpense() {
+            const form = document.getElementById('expenseForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            const editId = form.getAttribute('data-edit-id');
+            const url = editId ? `api/expenses/${editId}` : 'api/expenses';
+            const method = editId ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showAlert(editId ? 'Expense updated successfully' : 'Expense added successfully', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('expenseModal')).hide();
+                    loadExpenses();
+                    loadExpenseSummary();
+                } else {
+                    showAlert(result.error || 'Error saving expense', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error saving expense', 'danger');
+            });
+        }
+
+        function deleteExpense(id) {
+            if (confirm('Are you sure you want to delete this expense?')) {
+                fetch(`api/expenses/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showAlert('Expense deleted successfully', 'success');
+                        loadExpenses();
+                        loadExpenseSummary();
+                    } else {
+                        showAlert(result.error || 'Error deleting expense', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error deleting expense', 'danger');
+                });
+            }
+        }
+
+        function loadExpenses(page = 1) {
+            const search = document.getElementById('expenseSearch').value;
+            const categoryFilter = document.getElementById('expenseCategoryFilter').value;
+            const dateFrom = document.getElementById('expenseDateFrom').value;
+            const dateTo = document.getElementById('expenseDateTo').value;
+            
+            let url = `api/expenses?page=${page}&limit=20`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (categoryFilter) url += `&category=${encodeURIComponent(categoryFilter)}`;
+            if (dateFrom) url += `&date_from=${dateFrom}`;
+            if (dateTo) url += `&date_to=${dateTo}`;
+            
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayExpenses(data.data);
+                    displayPagination(data.pagination, 'expensesPagination', loadExpenses);
+                } else {
+                    showAlert('Error loading expenses', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error loading expenses', 'danger');
+            });
+        }
+
+        function displayExpenses(expenses) {
+            const tbody = document.getElementById('expensesTableBody');
+            tbody.innerHTML = '';
+            
+            expenses.forEach(expense => {
+                const row = `
+                    <tr>
+                        <td>${expense.expense_date}</td>
+                        <td><span class="badge bg-info">${expense.category}</span></td>
+                        <td>${expense.description}</td>
+                        <td>$${expense.amount}</td>
+                        <td>${expense.payment_method}</td>
+                        <td>${expense.vendor || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="showEditExpenseModal(${expense.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteExpense(${expense.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        function loadExpenseSummary() {
+            fetch('api/expenses/summary', {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const summary = data.data;
+                    document.getElementById('totalExpenses').textContent = `$${summary.total_expenses || '0.00'}`;
+                    document.getElementById('monthlyExpenses').textContent = `$${summary.monthly_expenses || '0.00'}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading expense summary:', error);
+            });
+        }
+
+        // ===== PAYMENTS MANAGEMENT =====
+
+        function showAddPaymentModal() {
+            document.getElementById('paymentModalTitle').textContent = 'Add Payment';
+            document.getElementById('paymentForm').reset();
+            document.getElementById('paymentForm').removeAttribute('data-edit-id');
+            loadPatientsForPayment();
+            loadPrescriptionsForPayment();
+            new bootstrap.Modal(document.getElementById('paymentModal')).show();
+        }
+
+        function showEditPaymentModal(id) {
+            fetch(`api/payments/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const payment = data.data;
+                        document.getElementById('paymentModalTitle').textContent = 'Edit Payment';
+                        const form = document.getElementById('paymentForm');
+                        form.setAttribute('data-edit-id', id);
+                        
+                        // Populate form fields
+                        form.payment_date.value = payment.payment_date;
+                        form.payment_type.value = payment.payment_type;
+                        form.patient_id.value = payment.patient_id || '';
+                        form.prescription_id.value = payment.prescription_id || '';
+                        form.consultation_fee.value = payment.consultation_fee || '0.00';
+                        form.medicine_cost.value = payment.medicine_cost || '0.00';
+                        form.lab_test_cost.value = payment.lab_test_cost || '0.00';
+                        form.total_amount.value = payment.total_amount;
+                        form.discount_amount.value = payment.discount_amount || '0.00';
+                        form.tax_amount.value = payment.tax_amount || '0.00';
+                        form.payment_method.value = payment.payment_method;
+                        form.payment_status.value = payment.payment_status || 'pending';
+                        form.receipt_number.value = payment.receipt_number || '';
+                        form.notes.value = payment.notes || '';
+                        
+                        new bootstrap.Modal(document.getElementById('paymentModal')).show();
+                    } else {
+                        showAlert('Error loading payment data', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error loading payment data', 'danger');
+                });
+        }
+
+        function savePayment() {
+            const form = document.getElementById('paymentForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            const editId = form.getAttribute('data-edit-id');
+            const url = editId ? `api/payments/${editId}` : 'api/payments';
+            const method = editId ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showAlert(editId ? 'Payment updated successfully' : 'Payment added successfully', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                    loadPayments();
+                    loadPaymentSummary();
+                } else {
+                    showAlert(result.error || 'Error saving payment', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error saving payment', 'danger');
+            });
+        }
+
+        function deletePayment(id) {
+            if (confirm('Are you sure you want to delete this payment?')) {
+                fetch(`api/payments/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showAlert('Payment deleted successfully', 'success');
+                        loadPayments();
+                        loadPaymentSummary();
+                    } else {
+                        showAlert(result.error || 'Error deleting payment', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error deleting payment', 'danger');
+                });
+            }
+        }
+
+        function loadPayments(page = 1) {
+            const search = document.getElementById('paymentSearch').value;
+            const typeFilter = document.getElementById('paymentTypeFilter').value;
+            const statusFilter = document.getElementById('paymentStatusFilter').value;
+            const dateFrom = document.getElementById('paymentDateFrom').value;
+            
+            let url = `api/payments?page=${page}&limit=20`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (typeFilter) url += `&type=${encodeURIComponent(typeFilter)}`;
+            if (statusFilter) url += `&status=${encodeURIComponent(statusFilter)}`;
+            if (dateFrom) url += `&date_from=${dateFrom}`;
+            
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayPayments(data.data);
+                    displayPagination(data.pagination, 'paymentsPagination', loadPayments);
+                } else {
+                    showAlert('Error loading payments', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error loading payments', 'danger');
+            });
+        }
+
+        function displayPayments(payments) {
+            const tbody = document.getElementById('paymentsTableBody');
+            tbody.innerHTML = '';
+            
+            payments.forEach(payment => {
+                const statusClass = payment.payment_status === 'completed' ? 'bg-success' : 
+                                  payment.payment_status === 'pending' ? 'bg-warning' : 
+                                  payment.payment_status === 'partial' ? 'bg-info' : 'bg-secondary';
+                
+                const row = `
+                    <tr>
+                        <td>${payment.payment_date}</td>
+                        <td><span class="badge bg-info">${payment.payment_type}</span></td>
+                        <td>${payment.patient_name || '-'}</td>
+                        <td>$${payment.total_amount}</td>
+                        <td>${payment.payment_method}</td>
+                        <td><span class="badge ${statusClass}">${payment.payment_status}</span></td>
+                        <td>${payment.receipt_number || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="showEditPaymentModal(${payment.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deletePayment(${payment.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        function loadPaymentSummary() {
+            fetch('api/payments/summary', {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const summary = data.data;
+                    document.getElementById('totalReceived').textContent = `$${summary.total_received || '0.00'}`;
+                    document.getElementById('pendingPayments').textContent = `$${summary.pending_payments || '0.00'}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading payment summary:', error);
+            });
+        }
+
+        // ===== HELPER FUNCTIONS =====
+
+        async function loadPatientsForPayment() {
+            try {
+                const patients = await apiCall('api/patients');
+                if (patients && patients.data) {
+                    const select = document.getElementById('paymentPatientSelect');
+                    select.innerHTML = '<option value="">Select Patient</option>';
+                    patients.data.forEach(patient => {
+                        select.innerHTML += `<option value="${patient.id}">${patient.name} - ${patient.age || 'N/A'} years</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading patients for payment:', error);
+            }
+        }
+
+        async function loadPrescriptionsForPayment() {
+            try {
+                const prescriptions = await apiCall('api/prescriptions');
+                if (prescriptions && prescriptions.data) {
+                    const select = document.getElementById('paymentPrescriptionSelect');
+                    select.innerHTML = '<option value="">Select Prescription</option>';
+                    prescriptions.data.forEach(prescription => {
+                        select.innerHTML += `<option value="${prescription.id}">Prescription #${prescription.id} - ${prescription.patient_name || 'N/A'}</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading prescriptions for payment:', error);
+            }
+        }
+
+        // ===== SECTION NAVIGATION FUNCTIONS =====
+
+        function showMedicines() {
+            hideAllSections();
+            document.getElementById('medicines').style.display = 'block';
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+            loadMedicines();
+        }
+
+        function showLaboratoryTests() {
+            hideAllSections();
+            document.getElementById('laboratory-tests').style.display = 'block';
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+            loadLaboratoryTests();
+        }
+
+        function showExpenses() {
+            hideAllSections();
+            document.getElementById('expenses').style.display = 'block';
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+            loadExpenses();
+            loadExpenseSummary();
+        }
+
+        function showPayments() {
+            hideAllSections();
+            document.getElementById('payments').style.display = 'block';
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+            loadPayments();
+            loadPaymentSummary();
+        }
+
+        function showReports() {
+            hideAllSections();
+            document.getElementById('reports').style.display = 'block';
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // ===== PAGINATION HELPER =====
+
+        function displayPagination(pagination, containerId, loadFunction) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (pagination.pages <= 1) return;
+            
+            // Previous button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${pagination.page <= 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="loadFunction(${pagination.page - 1})">Previous</a>`;
+            container.appendChild(prevLi);
+            
+            // Page numbers
+            for (let i = 1; i <= pagination.pages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === pagination.page ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="loadFunction(${i})">${i}</a>`;
+                container.appendChild(li);
+            }
+            
+            // Next button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${pagination.page >= pagination.pages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="loadFunction(${pagination.page + 1})">Next</a>`;
+            container.appendChild(nextLi);
+        }
+
+
     </script>
 </body>
 </html>
