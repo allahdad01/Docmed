@@ -33,6 +33,13 @@ import './js/expenses.js';
 import './js/payments.js';
 import './js/reports.js';
 
+// NEW: Advanced Feature Modules
+import './js/prescription-generator.js';
+import './js/payment-management.js';
+import './js/pharmacy-commission.js';
+import './js/laboratory-commission.js';
+import './js/expense-management.js';
+
 // Dashboard statistics
 import './js/dashboard-stats.js';
 
@@ -63,6 +70,28 @@ window.showAlert = window.showAlert || (() => import('./js/utils.js').then(m => 
 window.openModal = window.openModal || (() => import('./js/modal-manager.js').then(m => m.openModal()));
 window.closeModal = window.closeModal || (() => import('./js/modal-manager.js').then(m => m.closeModal()));
 
+// Make advanced feature functions globally available
+window.addMedicineItem = window.addMedicineItem || (() => import('./js/prescription-generator.js').then(m => m.addMedicineItem()));
+window.removeMedicineItem = window.removeMedicineItem || (() => import('./js/prescription-generator.js').then(m => m.removeMedicineItem()));
+window.generatePrescriptionPDF = window.generatePrescriptionPDF || (() => import('./js/prescription-generator.js').then(m => m.generatePrescriptionPDF()));
+window.printPrescription = window.printPrescription || (() => import('./js/prescription-generator.js').then(m => m.printPrescription()));
+
+window.viewPayment = window.viewPayment || (() => import('./js/payment-management.js').then(m => m.viewPayment()));
+window.recordPayment = window.recordPayment || (() => import('./js/payment-management.js').then(m => m.recordPayment()));
+window.submitPaymentRecord = window.submitPaymentRecord || (() => import('./js/payment-management.js').then(m => m.submitPaymentRecord()));
+
+window.viewPharmacyPartnership = window.viewPharmacyPartnership || (() => import('./js/pharmacy-commission.js').then(m => m.viewPharmacyPartnership()));
+window.deletePharmacyPartnership = window.deletePharmacyPartnership || (() => import('./js/pharmacy-commission.js').then(m => m.deletePharmacyPartnership()));
+window.markCommissionPaid = window.markCommissionPaid || (() => import('./js/pharmacy-commission.js').then(m => m.markCommissionPaid()));
+
+window.viewLaboratoryPartnership = window.viewLaboratoryPartnership || (() => import('./js/laboratory-commission.js').then(m => m.viewLaboratoryPartnership()));
+window.deleteLaboratoryPartnership = window.deleteLaboratoryPartnership || (() => import('./js/laboratory-commission.js').then(m => m.deleteLaboratoryPartnership()));
+window.markLabCommissionPaid = window.markLabCommissionPaid || (() => import('./js/laboratory-commission.js').then(m => m.markLabCommissionPaid()));
+
+window.viewExpense = window.viewExpense || (() => import('./js/expense-management.js').then(m => m.viewExpense()));
+window.deleteExpense = window.deleteExpense || (() => import('./js/expense-management.js').then(m => m.deleteExpense()));
+window.removeReceipt = window.removeReceipt || (() => import('./js/expense-management.js').then(m => m.removeReceipt()));
+
 // Initialize dashboard stats on load
 document.addEventListener('DOMContentLoaded', () => {
     // Load initial dashboard statistics
@@ -70,4 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize global utilities
     console.log('All modules loaded successfully');
+    
+    // Initialize advanced features
+    console.log('Advanced features loaded: Prescription Generator, Payment Management, Pharmacy Commission, Laboratory Commission, Expense Management');
 });
